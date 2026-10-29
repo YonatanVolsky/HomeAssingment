@@ -1,6 +1,8 @@
 import { AppError } from '../errors.js';
 
 const PREVIEW_MAX = 300;
+// Reddit pads empty paragraphs with zero-width spaces, raw or as an HTML entity.
+const ZERO_WIDTH = new RegExp('&#x200B;|\\u200B', 'gi');
 // Epoch values below this are seconds; above it, milliseconds (year 5138 in seconds).
 const MS_THRESHOLD = 1e11;
 
@@ -69,7 +71,7 @@ function stripMarkup(text: string): string {
     .replace(/(\*\*|__|~~)(.+?)\1/g, '$2')
     .replace(/(^|\W)[*_](\S(?:.*?\S)?)[*_](?=\W|$)/g, '$1$2')
     .replace(/`([^`]*)`/g, '$1')
-    .replace(/&#x200B;|​/gi, '')
+    .replace(ZERO_WIDTH, '')
     .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')

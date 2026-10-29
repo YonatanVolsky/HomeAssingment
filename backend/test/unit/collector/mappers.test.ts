@@ -18,7 +18,7 @@ describe('toIsoUtc', () => {
     [1730000000.5, 'fractional epoch seconds'],
     ['2024-10-27T03:33:20Z', 'ISO string'],
     ['2024-10-27T05:33:20+02:00', 'ISO string with offset'],
-  ])('converts %j (%s) to ISO UTC', (value) => {
+  ])('converts %j (%s) to ISO UTC', (value, _label) => {
     expect(toIsoUtc(value)).toMatch(/^2024-10-27T03:33:20(\.\d{3})?Z$/);
   });
 
