@@ -34,7 +34,7 @@ export const DEFAULT_HEALTH: HealthResponse = {
   staleAfterSeconds: 600,
 };
 
-const NETWORK_ERROR: UiErrorBody = {
+export const NETWORK_ERROR: UiErrorBody = {
   code: 'NETWORK',
   message: 'Cannot reach the local server. Is the backend running?',
   retryable: true,
