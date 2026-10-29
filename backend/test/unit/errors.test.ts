@@ -61,3 +61,17 @@ describe('toErrorBody', () => {
     expect(body.message).toContain('12 seconds');
   });
 });
+
+describe('autoRetry', () => {
+  it('follows the table by default', () => {
+    expect(new AppError('UPSTREAM_ERROR').autoRetry).toBe(true);
+    expect(new AppError('RATE_LIMITED').autoRetry).toBe(false);
+  });
+
+  it('can be switched off for one error without changing what the UI is told', () => {
+    const error = new AppError('UPSTREAM_ERROR', undefined, { autoRetry: false });
+
+    expect(error.autoRetry).toBe(false);
+    expect(error.retryable).toBe(true);
+  });
+});

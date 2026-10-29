@@ -70,6 +70,8 @@ export const ERROR_TABLE: Readonly<Record<ErrorCode, ErrorPolicy>> = Object.free
 export interface AppErrorOptions {
   cause?: unknown;
   retryAfterSeconds?: number;
+  /** Only `false` is meaningful: stops the collector re-sending a request the table would retry. */
+  autoRetry?: false;
 }
 
 /**
@@ -79,12 +81,14 @@ export interface AppErrorOptions {
 export class AppError extends Error {
   readonly code: ErrorCode;
   readonly retryAfterSeconds: number | undefined;
+  private readonly autoRetryOverride: false | undefined;
 
   constructor(code: ErrorCode, message?: string, options: AppErrorOptions = {}) {
     super(message ?? defaultMessage(code, options.retryAfterSeconds), { cause: options.cause });
     this.name = 'AppError';
     this.code = code;
     this.retryAfterSeconds = options.retryAfterSeconds;
+    this.autoRetryOverride = options.autoRetry;
   }
 
   get httpStatus(): number {
@@ -96,7 +100,7 @@ export class AppError extends Error {
   }
 
   get autoRetry(): boolean {
-    return ERROR_TABLE[this.code].autoRetry;
+    return this.autoRetryOverride ?? ERROR_TABLE[this.code].autoRetry;
   }
 }
 
