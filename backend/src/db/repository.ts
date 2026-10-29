@@ -1,20 +1,28 @@
 import type { Database } from 'better-sqlite3';
-import type { Post } from '@reddit-collector/contracts';
+import type { ErrorCode, Post } from '@reddit-collector/contracts';
 import type { Clock } from '../clock.js';
 import type { Logger } from '../logger.js';
-import { type PostRow, rowToPost, type StoredCollection } from './rows.js';
+import {
+  type CollectionRow,
+  type PostRow,
+  rowToPost,
+  rowToStoredCollection,
+  type StoredCollection,
+} from './rows.js';
 
 export interface CollectionRepository {
   /** Stores a successful run atomically: posts, the run, and its links. */
   recordSuccess(term: string, posts: Post[], startedAt: Date): StoredCollection;
+  /** Records a failed attempt. Never throws: a failed write must not hide the original error. */
+  recordFailure(term: string, errorCode: ErrorCode, startedAt: Date): void;
+  getLatestSuccess(term: string): StoredCollection | null;
+  /** Latest success finished within `ttlSeconds` of now; `ttlSeconds = 0` always gives null. */
+  getFreshSuccess(term: string, ttlSeconds: number): StoredCollection | null;
   getFeed(collectionId: number): Post[];
+  ping(): void;
 }
 
-export function createRepository(
-  db: Database,
-  clock: Clock,
-  _logger: Logger,
-): CollectionRepository {
+export function createRepository(db: Database, clock: Clock, logger: Logger): CollectionRepository {
   const upsertPost = db.prepare<PostRow & { seen_at: string }, { id: number }>(`
     INSERT INTO posts (reddit_id, title, author, comment_count, score, created_at, permalink,
                        subreddit, preview_text, flair, first_seen_at, last_seen_at)
@@ -60,6 +68,20 @@ export function createRepository(
     ORDER BY p.created_at DESC, p.reddit_id ASC
   `);
 
+  const selectLatestSuccess = db.prepare<{ term: string; since: string }, CollectionRow>(`
+    SELECT id, term, post_count, finished_at
+    FROM collections
+    WHERE term = @term AND status = 'success' AND finished_at >= @since
+    ORDER BY finished_at DESC, id DESC
+    LIMIT 1
+  `);
+  const EPOCH = new Date(0).toISOString();
+
+  const latestSince = (term: string, since: string): StoredCollection | null => {
+    const row = selectLatestSuccess.get({ term, since });
+    return row ? rowToStoredCollection(row) : null;
+  };
+
   const recordSuccessTx = db.transaction(
     (term: string, posts: Post[], startedAt: Date): StoredCollection => {
       const finishedAt = clock.now().toISOString();
@@ -82,7 +104,30 @@ export function createRepository(
 
   return {
     recordSuccess: (term, posts, startedAt) => recordSuccessTx(term, posts, startedAt),
+    recordFailure: (term, errorCode, startedAt) => {
+      try {
+        insertCollection.run({
+          term,
+          status: 'failed',
+          post_count: 0,
+          error_code: errorCode,
+          started_at: startedAt.toISOString(),
+          finished_at: clock.now().toISOString(),
+        });
+      } catch (cause) {
+        logger.error({ err: cause, term, errorCode }, 'could not record failed collection');
+      }
+    },
+    getLatestSuccess: (term) => latestSince(term, EPOCH),
+    getFreshSuccess: (term, ttlSeconds) => {
+      if (ttlSeconds <= 0) return null;
+      const since = new Date(clock.now().getTime() - ttlSeconds * 1000).toISOString();
+      return latestSince(term, since);
+    },
     getFeed: (collectionId) => selectFeed.all({ collection_id: collectionId }).map(rowToPost),
+    ping: () => {
+      db.prepare('SELECT 1').get();
+    },
   };
 }
 

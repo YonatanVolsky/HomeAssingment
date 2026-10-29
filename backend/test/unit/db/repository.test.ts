@@ -118,3 +118,71 @@ describe('getFeed', () => {
     expect(repo.getFeed(summary.id).map((p) => p.id)).toEqual(['t3_c', 't3_a', 't3_b']);
   });
 });
+
+describe('recordFailure', () => {
+  it('stores a failed run without changing the latest successful feed', () => {
+    const good = repo.recordSuccess('ubisoft', [makePost('t3_a')], clock.now());
+    clock.advanceSeconds(30);
+
+    repo.recordFailure('ubisoft', 'UPSTREAM_TIMEOUT', clock.now());
+
+    expect(
+      db
+        .prepare("SELECT status, error_code, post_count FROM collections WHERE status = 'failed'")
+        .get(),
+    ).toEqual({ status: 'failed', error_code: 'UPSTREAM_TIMEOUT', post_count: 0 });
+    expect(repo.getLatestSuccess('ubisoft')?.id).toBe(good.id);
+  });
+
+  it('never throws, and logs instead, when the write itself fails', () => {
+    const { entries, logger } = makeLogger();
+    const failing = createRepository(db, clock, logger);
+    db.close();
+
+    expect(() => failing.recordFailure('ubisoft', 'UPSTREAM_ERROR', clock.now())).not.toThrow();
+    expect(entries.map((e) => e.level)).toContain('error');
+  });
+});
+
+describe('getLatestSuccess', () => {
+  it('returns null for a term that was never collected', () => {
+    expect(repo.getLatestSuccess('never')).toBeNull();
+  });
+
+  it('returns the newest successful run of that term only', () => {
+    repo.recordSuccess('ubisoft', [makePost('t3_a')], clock.now());
+    clock.advanceSeconds(10);
+    const newer = repo.recordSuccess('ubisoft', [makePost('t3_b')], clock.now());
+    repo.recordSuccess('gaming', [makePost('t3_c')], clock.now());
+
+    expect(repo.getLatestSuccess('ubisoft')).toMatchObject({ id: newer.id, term: 'ubisoft' });
+    expect(repo.getFeed(newer.id).map((p) => p.id)).toEqual(['t3_b']);
+  });
+});
+
+describe('getFreshSuccess', () => {
+  it('returns the latest success while it is younger than the TTL', () => {
+    const run = repo.recordSuccess('ubisoft', [makePost('t3_a')], clock.now());
+    clock.advanceSeconds(59);
+
+    expect(repo.getFreshSuccess('ubisoft', 60)?.id).toBe(run.id);
+  });
+
+  it('returns null once the TTL has passed', () => {
+    repo.recordSuccess('ubisoft', [makePost('t3_a')], clock.now());
+    clock.advanceSeconds(61);
+
+    expect(repo.getFreshSuccess('ubisoft', 60)).toBeNull();
+  });
+
+  it('always returns null when the TTL is zero', () => {
+    repo.recordSuccess('ubisoft', [makePost('t3_a')], clock.now());
+    expect(repo.getFreshSuccess('ubisoft', 0)).toBeNull();
+  });
+});
+
+describe('ping', () => {
+  it('succeeds on an open database', () => {
+    expect(() => repo.ping()).not.toThrow();
+  });
+});
