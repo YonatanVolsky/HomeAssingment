@@ -19,7 +19,7 @@ const int = (min: number, max: number, fallback: number) =>
 
 const EnvSchema = z
   .object({
-    PORT: int(1, 65535, 3001),
+    PORT: int(0, 65535, 3001),
     HOST: z.string().min(1).default('127.0.0.1'),
     COLLECTOR_MODE: z.enum(['live', 'fixture']).default('live'),
     DB_PATH: z.string().min(1).optional(),

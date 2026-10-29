@@ -35,6 +35,10 @@ describe('loadConfig', () => {
     });
   });
 
+  it('accepts port 0, which lets the OS pick a free port', () => {
+    expect(loadConfig({ PORT: '0' }).port).toBe(0);
+  });
+
   it('rejects an out-of-range port with a message naming the variable', () => {
     expect(() => loadConfig({ PORT: '70000' })).toThrow(/PORT/);
   });
