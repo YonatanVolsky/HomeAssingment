@@ -3,6 +3,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildApp, REDACTED_LOG_PATHS } from './app.js';
 import { systemClock } from './clock.js';
 import { createCollector } from './collector/createCollector.js';
+import { LIVE_COLLECTION_AVAILABLE } from './collector/reddit/mobileApi.js';
 import { loadConfig } from './config.js';
 import { openDatabase } from './db/connection.js';
 import { createRepository } from './db/repository.js';
@@ -50,6 +51,12 @@ export async function startServer(env: Record<string, string | undefined>): Prom
   const address = app.server.address();
   const port = typeof address === 'object' && address ? address.port : config.port;
   app.log.info({ dbPath, collectorMode: config.collectorMode }, 'reddit collector ready');
+  if (config.collectorMode === 'live' && !LIVE_COLLECTION_AVAILABLE) {
+    console.warn(
+      'Live Reddit collection is not available yet; searches will fail. ' +
+        'Start with COLLECTOR_MODE=fixture for sample data.',
+    );
+  }
 
   return {
     url: `http://${config.host}:${port}`,

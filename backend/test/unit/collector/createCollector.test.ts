@@ -22,6 +22,7 @@ describe('createCollector', () => {
 
     await expect(collector.collect('ubisoft', 25)).rejects.toMatchObject({
       code: 'UPSTREAM_ERROR',
+      retryable: false,
       message: expect.stringContaining('not available yet'),
     });
   });

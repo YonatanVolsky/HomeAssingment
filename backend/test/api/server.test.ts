@@ -1,7 +1,7 @@
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { startServer } from '../../src/server.js';
 
 const env = () => ({
@@ -50,6 +50,15 @@ describe('startServer', () => {
     } finally {
       await second.close();
     }
+  });
+
+  it('warns at startup when live mode cannot collect yet', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const server = await startServer({ ...env(), COLLECTOR_MODE: 'live' });
+    await server.close();
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('COLLECTOR_MODE=fixture'));
+    warn.mockRestore();
   });
 
   it('refuses to start with a clear message on invalid configuration', async () => {

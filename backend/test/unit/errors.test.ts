@@ -75,3 +75,12 @@ describe('autoRetry', () => {
     expect(error.retryable).toBe(true);
   });
 });
+
+describe('retryable override', () => {
+  it('can mark one error as not worth retrying from the UI', () => {
+    const error = new AppError('UPSTREAM_ERROR', undefined, { retryable: false });
+
+    expect(error.retryable).toBe(false);
+    expect(toErrorBody(error).retryable).toBe(false);
+  });
+});

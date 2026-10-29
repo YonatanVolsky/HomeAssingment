@@ -72,6 +72,8 @@ export interface AppErrorOptions {
   retryAfterSeconds?: number;
   /** Only `false` is meaningful: stops the collector re-sending a request the table would retry. */
   autoRetry?: false;
+  /** Only `false` is meaningful: hides "Try again" for a condition that waiting cannot fix. */
+  retryable?: false;
 }
 
 /**
@@ -82,6 +84,7 @@ export class AppError extends Error {
   readonly code: ErrorCode;
   readonly retryAfterSeconds: number | undefined;
   private readonly autoRetryOverride: false | undefined;
+  private readonly retryableOverride: false | undefined;
 
   constructor(code: ErrorCode, message?: string, options: AppErrorOptions = {}) {
     super(message ?? defaultMessage(code, options.retryAfterSeconds), { cause: options.cause });
@@ -89,6 +92,7 @@ export class AppError extends Error {
     this.code = code;
     this.retryAfterSeconds = options.retryAfterSeconds;
     this.autoRetryOverride = options.autoRetry;
+    this.retryableOverride = options.retryable;
   }
 
   get httpStatus(): number {
@@ -96,7 +100,7 @@ export class AppError extends Error {
   }
 
   get retryable(): boolean {
-    return ERROR_TABLE[this.code].retryable;
+    return this.retryableOverride ?? ERROR_TABLE[this.code].retryable;
   }
 
   get autoRetry(): boolean {
