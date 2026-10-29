@@ -30,7 +30,15 @@ Static checks: `scripts/check-compliance.sh` OK, `scripts/check-secrets.sh` OK, 
 
 ### Still to do
 
-- Run 2 against live Reddit once the capture is done: rows 2, 3, 6 and 10 with real data, and
+- A run against live Reddit once the capture is done: rows 2, 3, 6 and 10 with real data, and
   `npm run test:live`.
 - Look at the UI in a browser at 375 px and 1280 px, keyboard only, in light and dark mode.
 - Clean-machine dry run of the README.
+
+## Run 2: 2026-10-29, after the switch to a Python backend (fixture mode)
+
+Python 3.13.1 (FastAPI 0.162.0, uvicorn 0.54.0, httpx 0.28.1, pydantic 2.14.2), Node 24.12.0
+for the React build. Same checklist, same results as run 1: `npm test` passes (backend pytest
+233, frontend Vitest 88), `scripts/smoke.sh` 6/6 against `python -m app`, `npm run dev`
+(proxy) and `npm run build && npm start` (single process) both serve the UI and the API,
+compliance and secret checks OK. The "still to do" list above is unchanged.

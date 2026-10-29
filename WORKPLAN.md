@@ -26,7 +26,10 @@ keeps the summary, the key decisions, and the completion criteria.
 - **What "term" means:** primary is a subreddit (`ubisoft`, `r/ubisoft`), sorted
   by New. Free-text search is a stretch goal, only if the mobile search request
   is cheap to capture. Confirm with the reviewers by email early.
-- **Stack:** TypeScript, Node 22 LTS (Node 20 is end of life), Fastify, zod, SQLite (`better-sqlite3`),
+- **Stack (changed 2026-10-29):** Python 3.11+ backend (FastAPI, pydantic, `sqlite3`, httpx,
+  pytest) and a React frontend in plain JavaScript (Vite, Vitest). Originally TypeScript
+  throughout; switched so the code is in the author's language. Original line:
+  TypeScript, Node 22 LTS (Node 20 is end of life), Fastify, zod, SQLite (`better-sqlite3`),
   undici, React + Vite, Vitest. See the decision table in `plan/README.md`.
 - **Data model:** `posts`, `collections` (runs, including failures),
   `collection_posts`. A feed is the post set of a term's latest successful run.

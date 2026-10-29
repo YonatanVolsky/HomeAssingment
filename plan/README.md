@@ -51,6 +51,13 @@ change the schema. Do not wait for the answer to start the capture.
 
 ## Stack decisions (change here first, then in the component files)
 
+> **Changed on 2026-10-29:** the backend was rewritten in Python (FastAPI, pydantic, the
+> built-in `sqlite3`, httpx, pytest) and the frontend converted to plain React JSX, so the code
+> is in the author's language. Behavior, tests and structure are unchanged; module names in the
+> component files below still use the TypeScript spelling (`collectionService.ts` is now
+> `collection_service.py`). The table below is the original decision, kept for the record;
+> the current reasoning is in `DESIGN.md`.
+
 | # | Decision | Choice | Why | Alternative and cost |
 |---|---|---|---|---|
 | D1 | Language | TypeScript on Node 22 LTS (24 also supported) | One language across frontend, backend, tests. Node 20 reached end of life in April 2026 | Python backend: two toolchains to document |

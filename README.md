@@ -11,58 +11,71 @@ feed of cards. Design decisions and limitations are in [DESIGN.md](DESIGN.md).
 
 ## Requirements
 
-- **Node.js 22 LTS or 24** (`.nvmrc` says 22) and npm 10 or newer.
-- Nothing else: no database server, no Docker, no Reddit account, keys or environment
-  variables. SQLite is embedded through `better-sqlite3`, which downloads a prebuilt binary
-  for your platform. If that download fails, a C/C++ toolchain is needed to build it
-  (macOS: `xcode-select --install`; Debian/Ubuntu: `sudo apt install build-essential python3`).
+- **Python 3.11 or newer** (tested with 3.13) for the backend.
+- **Node.js 22 LTS or 24** with npm 10+ for the frontend (React, built with Vite).
+- Nothing else: SQLite is part of Python, and no Reddit account, keys or secrets are needed.
 
-## Quick start
+## Setup (once)
+
+From the repository root, on macOS or Linux:
 
 ```bash
-git clone <repo-url> reddit-collector
-cd reddit-collector
-nvm use                 # optional, if you use nvm
+python3 -m venv backend/.venv
+backend/.venv/bin/pip install -r backend/requirements-dev.txt
 npm install
+```
+
+On Windows, use `py -m venv backend\.venv` and `backend\.venv\Scripts\pip install -r
+backend\requirements-dev.txt`, then run the backend and frontend in two terminals (see
+"Running the two parts separately").
+
+## Run
+
+```bash
 COLLECTOR_MODE=fixture npm run dev     # offline sample data (works today)
 # npm run dev                          # live Reddit, once the capture is wired up
 ```
 
-Open **http://localhost:5173** and enter `ubisoft` or `r/ubisoft`.
+Open **http://localhost:5173** and enter `ubisoft` or `r/ubisoft`. Stop with `Ctrl+C`.
 
 `npm run dev` starts:
 
-| Process | Address | Notes |
+| Part | Address | Notes |
 |---|---|---|
-| Backend (Fastify) | `http://127.0.0.1:3001` | Local only. Logs as JSON to the terminal |
-| Frontend (Vite) | `http://localhost:5173` | Proxies `/api` to the backend |
+| Backend (Python, FastAPI) | `http://127.0.0.1:3001` | Local only. API docs at `/api/docs` |
+| Frontend (React, Vite) | `http://localhost:5173` | Proxies `/api` to the backend |
 | Database (SQLite file) | `data/collector.db` (`data/fixture.db` in fixture mode) | Created on first start, schema applied automatically |
 
-Stop with `Ctrl+C`.
+### Running the two parts separately
+
+```bash
+cd backend && COLLECTOR_MODE=fixture .venv/bin/python -m app     # terminal 1
+npm run dev -w frontend                                          # terminal 2
+```
 
 ### Single-process run
 
 ```bash
-npm run build
-COLLECTOR_MODE=fixture npm start      # serves the built UI and the API on http://127.0.0.1:3001
+npm run build                           # builds the UI into frontend/dist
+COLLECTOR_MODE=fixture npm start        # the backend serves the UI and the API on :3001
 ```
 
 ## Configuration
 
-Every variable is optional; copy `.env.example` to see them all. The backend reads them from
-the environment (for example `PORT=4000 npm run dev`).
+Every variable is optional; `.env.example` lists them all. They are read from the environment
+(for example `PORT=4000 npm run dev`); the app does not load `.env` files itself.
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `COLLECTOR_MODE` | `live` | `live` scrapes Reddit; `fixture` serves bundled sample data |
-| `PORT` / `HOST` | `3001` / `127.0.0.1` | Backend address. If you change `PORT`, also change the proxy in `frontend/vite.config.ts` |
+| `PORT` / `HOST` | `3001` / `127.0.0.1` | Backend address. If you change `PORT`, also change the proxy in `frontend/vite.config.js` |
 | `DB_PATH` | `./data/collector.db` (live), `./data/fixture.db` (fixture) | SQLite file, relative to the repo root |
 | `MAX_POSTS` | `25` | Posts kept per collection (1-100) |
 | `COLLECTION_TTL_SECONDS` | `60` | A repeat search within this time is served from the database (`0` turns it off) |
 | `STALE_AFTER_SECONDS` | `600` | The UI suggests refreshing after this |
 | `REQUEST_TIMEOUT_MS` | `8000` | Timeout per HTTP request to Reddit |
 | `COLLECTION_DEADLINE_MS` | `25000` | Hard limit for a whole collection, including retries |
-| `LOG_LEVEL` | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
+| `LOG_LEVEL` | `info` | `critical`, `error`, `warning`, `info` or `debug` |
 
 No Reddit credentials are needed: the collector requests the same anonymous token the mobile
 app does, at runtime. Nothing secret is stored in the repository.
@@ -91,9 +104,8 @@ In fixture mode these subreddit names simulate each outcome:
 ## Tests and checks
 
 ```bash
-npm test                        # backend + frontend, offline (a few seconds)
-npm run lint
-npm run typecheck
+npm test                        # backend (pytest) + frontend (Vitest), offline, a few seconds
+npm run lint                    # ESLint for the UI, ruff for the backend
 scripts/smoke.sh                # against a running backend (BASE_URL, SMOKE_TERM to override)
 scripts/check-compliance.sh     # no browser automation, no official Reddit API
 scripts/check-secrets.sh        # no tokens committed
@@ -111,17 +123,18 @@ sqlite3 data/collector.db "SELECT term, status, post_count, finished_at FROM col
 ## Project layout
 
 ```
-backend/            Fastify API, collector, SQLite repository (TypeScript)
-  src/collector/    term validation, field mapping, retry/deadline policy, Reddit requests
-  src/db/           connection, schema, repository
-  src/services/     collection service (cache, de-duplication, failure recording)
-  src/routes/       HTTP endpoints
-  fixtures/         offline sample data
-frontend/           React + Vite UI
-packages/contracts/ API types shared by backend and frontend
-scripts/            smoke, compliance, secret and database helpers
-docs/               acceptance record, Reddit request spec (after capture)
-plan/               the work plan
+backend/              Python: FastAPI app, collector, SQLite repository
+  app/api.py          HTTP endpoints and error responses
+  app/services/       collection service (cache, de-duplication, failure recording)
+  app/collector/      term validation, field mapping, retry/deadline policy, Reddit requests
+  app/db/             connection, schema, repository (all SQL)
+  app/contracts.py    the JSON shapes sent to the browser
+  fixtures/           offline sample data
+  tests/              pytest
+frontend/             React (JavaScript/JSX), built with Vite; tests with Vitest
+scripts/              smoke, compliance, secret and database helpers
+docs/                 acceptance record, Reddit request spec (after capture)
+plan/                 the work plan
 ```
 
 ## Re-capturing the Reddit traffic
@@ -134,8 +147,8 @@ its result will be documented in `docs/reddit-mobile-request.md`.
 
 | Problem | Fix |
 |---|---|
-| `EADDRINUSE` on 3001 or 5173 | Another process uses the port: stop it, or set `PORT` (and update the Vite proxy) |
-| `npm install` fails building `better-sqlite3` | Use Node 22 or 24 (prebuilt binaries exist for them), or install the toolchain above |
+| `backend/.venv/bin/python: No such file` | Run the setup steps above first |
+| `Address already in use` on 3001 or 5173 | Stop the other process, or set `PORT` (and update the Vite proxy) |
 | "Cannot reach the local server" in the UI | The backend is not running or crashed: check the `[backend]` lines in the terminal |
 | "Live Reddit collection is not available yet" | Expected until the capture is done; use `COLLECTOR_MODE=fixture` |
 | "Reddit is limiting requests" | Reddit returned HTTP 429. Wait for the countdown; avoid rapid repeated refreshes |
