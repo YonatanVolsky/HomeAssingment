@@ -20,9 +20,11 @@ function scan(content: string): { code: number; output: string } {
 }
 
 // Built at runtime so this test file itself never contains a token-shaped value.
-const fakeJwt = ['eyJhbGciOiJIUzI1NiJ9', 'eyJzdWIiOiJ0ZXN0LXVzZXItMTIzNDU2In0', 'abc123def456'].join(
-  '.',
-);
+const fakeJwt = [
+  'eyJhbGciOiJIUzI1NiJ9',
+  'eyJzdWIiOiJ0ZXN0LXVzZXItMTIzNDU2In0',
+  'abc123def456',
+].join('.');
 
 describe('check-secrets.sh', () => {
   it('passes code that builds an Authorization header from a variable', () => {
