@@ -1,0 +1,72 @@
+[
+  {
+    "key": "playable",
+    "title": "Are the games still playable after the servers close?",
+    "author": "sample_user_one",
+    "commentCount": 1,
+    "score": 1,
+    "minutesAgo": 40,
+    "previewText": "I worry that after the shutdown I won't be able to play the games I bought before. Does anyone know how offline mode works?",
+    "flair": "Question"
+  },
+  {
+    "key": "support_reply",
+    "title": "After over one month of waiting, I got a reply for my customer support problem.",
+    "author": "sample_user_two",
+    "commentCount": 0,
+    "score": 3,
+    "minutesAgo": 50,
+    "previewText": null,
+    "flair": "Discussion"
+  },
+  {
+    "key": "units",
+    "title": "A question about \"Units\".",
+    "author": "sample_user_three",
+    "commentCount": 0,
+    "score": 1,
+    "minutesAgo": 95,
+    "previewText": "What exactly are Units used for, and do they expire?",
+    "flair": "Question"
+  },
+  {
+    "key": "website",
+    "title": "Website not working properly",
+    "author": null,
+    "commentCount": 0,
+    "score": 0,
+    "minutesAgo": 180,
+    "previewText": "The login page keeps reloading after I enter my password.",
+    "flair": null
+  },
+  {
+    "key": "splinter",
+    "title": "We need a new Splinter Cell game.",
+    "author": "sample_user_four",
+    "commentCount": 23,
+    "score": 148,
+    "minutesAgo": 300,
+    "previewText": null,
+    "flair": "Discussion"
+  },
+  {
+    "key": "good_bad_ugly",
+    "title": "The Good, the Bad, and the Ugly",
+    "author": "sample_user_five",
+    "commentCount": 14,
+    "score": -4,
+    "minutesAgo": 1440,
+    "previewText": "A long review of the latest release. The good: the world is beautiful and the side quests are better than ever. The bad: performance on older consoles. The ugly: the launcher, which crashed twice while I was writing this post and logged me out every time I closed the game, which is not what you want from a launcher.",
+    "flair": "Review"
+  },
+  {
+    "key": "crash_xbox",
+    "title": "Game keeps crashing on start screen (Xbox)",
+    "author": "sample_user_six",
+    "commentCount": 1250,
+    "score": 2300,
+    "minutesAgo": 4320,
+    "previewText": "Reinstalled twice, cleared cache, still crashes.",
+    "flair": "Bug"
+  }
+]
