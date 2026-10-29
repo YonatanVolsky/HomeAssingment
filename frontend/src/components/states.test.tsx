@@ -69,6 +69,25 @@ describe('ErrorBanner', () => {
     expect(screen.getByRole('button', { name: 'Try again' })).toBeEnabled();
   });
 
+  it('restarts the countdown when a new rate-limit error arrives', () => {
+    vi.useFakeTimers();
+    const first = {
+      code: 'RATE_LIMITED',
+      message: 'Slow.',
+      retryable: true,
+      retryAfterSeconds: 1,
+    } as const;
+    const { rerender } = render(<ErrorBanner error={first} onRetry={vi.fn()} now={NOW} />);
+    act(() => vi.advanceTimersByTime(1000));
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeEnabled();
+
+    rerender(
+      <ErrorBanner error={{ ...first, retryAfterSeconds: 5 }} onRetry={vi.fn()} now={NOW} />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Try again in 5 s' })).toBeDisabled();
+  });
+
   it('says when the results shown below were collected', () => {
     render(
       <ErrorBanner

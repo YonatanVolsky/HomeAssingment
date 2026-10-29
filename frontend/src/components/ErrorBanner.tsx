@@ -10,10 +10,17 @@ interface Props {
   lastGoodAt?: string;
 }
 
-/** Remount (via `key`) for each new error so the countdown restarts. */
+const waitFor = (error: UiErrorBody) =>
+  'retryAfterSeconds' in error ? (error.retryAfterSeconds ?? 0) : 0;
+
 export function ErrorBanner({ error, onRetry, now, lastGoodAt }: Props) {
-  const waitSeconds = 'retryAfterSeconds' in error ? (error.retryAfterSeconds ?? 0) : 0;
-  const [remaining, setRemaining] = useState(waitSeconds);
+  const [remaining, setRemaining] = useState(() => waitFor(error));
+  const [countedFor, setCountedFor] = useState(error);
+  if (countedFor !== error) {
+    // A new error (even an identical-looking one after a retry) restarts the countdown.
+    setCountedFor(error);
+    setRemaining(waitFor(error));
+  }
 
   const counting = remaining > 0;
 
