@@ -29,15 +29,15 @@ function scriptedSource(...steps: Step[]) {
   return { source, calls: () => tokensSeen.length, tokensSeen };
 }
 
-function fakeTokens(): TokenSource & { invalidations: number } {
+function fakeTokens(): TokenSource & { rejected: string[] } {
   let version = 1;
   return {
-    invalidations: 0,
+    rejected: [],
     async get() {
       return `token-${version}`;
     },
-    invalidate() {
-      this.invalidations += 1;
+    invalidate(rejectedToken) {
+      this.rejected.push(rejectedToken);
       version += 1;
     },
   };
@@ -108,7 +108,7 @@ describe('RedditCollector', () => {
 
     await build(source, { tokens }).collector.collect('ubisoft', 25);
 
-    expect(tokens.invalidations).toBe(1);
+    expect(tokens.rejected).toEqual(['token-1']);
     expect(tokensSeen).toEqual(['token-1', 'token-2']);
   });
 

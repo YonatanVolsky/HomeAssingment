@@ -25,21 +25,27 @@ export class TokenProvider {
     private readonly fetchToken: TokenFetcher,
     private readonly clock: Clock,
     private readonly logger: Logger,
+    private readonly refreshTimeoutMs = 10_000,
   ) {}
 
+  /**
+   * The shared refresh runs under its own timeout, not the first caller's deadline, so one
+   * collection running out of time does not fail the others waiting on the same refresh.
+   */
   async get(signal: AbortSignal): Promise<string> {
     const now = this.clock.now().getTime();
     if (this.cached && now < this.cached.expiresAt - REFRESH_MARGIN_MS) {
       return this.cached.token;
     }
-    this.inFlight ??= this.refresh(signal).finally(() => {
+    this.inFlight ??= this.refresh(AbortSignal.timeout(this.refreshTimeoutMs)).finally(() => {
       this.inFlight = null;
     });
-    return this.inFlight;
+    return untilAborted(this.inFlight, signal);
   }
 
-  invalidate(): void {
-    this.cached = null;
+  /** Drops the cached token only if it is the one that was rejected; a newer one is kept. */
+  invalidate(rejectedToken: string): void {
+    if (this.cached?.token === rejectedToken) this.cached = null;
   }
 
   private async refresh(signal: AbortSignal): Promise<string> {
@@ -60,4 +66,13 @@ export class TokenProvider {
     );
     return fetched.accessToken;
   }
+}
+
+function untilAborted<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) return Promise.reject(signal.reason);
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(signal.reason);
+    signal.addEventListener('abort', onAbort, { once: true });
+    promise.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort));
+  });
 }

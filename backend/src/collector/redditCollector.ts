@@ -17,7 +17,8 @@ export interface ListingSource {
 
 export interface TokenSource {
   get(signal: AbortSignal): Promise<string>;
-  invalidate(): void;
+  /** Drops `rejectedToken` if it is still the cached one. */
+  invalidate(rejectedToken: string): void;
 }
 
 export interface RedditCollectorDeps {
@@ -63,8 +64,11 @@ export class RedditCollector implements Collector {
   /** One attempt; on the first auth failure of this collection, refresh the token and resend. */
   private attemptWithAuthRefresh(subreddit: string, limit: number, deadline: Deadline) {
     let refreshed = false;
+    let sentToken: string | undefined;
     const send = async (): Promise<Post[]> => {
+      sentToken = undefined;
       const token = await this.deps.tokens.get(deadline.signal);
+      sentToken = token;
       return this.deps.source.fetchNewPosts(subreddit, limit, token, deadline.signal);
     };
     return async (): Promise<Post[]> => {
@@ -73,7 +77,7 @@ export class RedditCollector implements Collector {
       } catch (error) {
         if (refreshed || classifyNetworkError(error).code !== 'UPSTREAM_AUTH') throw error;
         refreshed = true;
-        this.deps.tokens.invalidate();
+        if (sentToken !== undefined) this.deps.tokens.invalidate(sentToken);
         return send();
       }
     };

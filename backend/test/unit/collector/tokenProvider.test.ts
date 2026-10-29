@@ -54,9 +54,9 @@ describe('TokenProvider', () => {
   it('fetches a new token after invalidate()', async () => {
     const { fetcher } = countingFetcher();
     const { tokens } = setup(fetcher);
-    await tokens.get(signal);
+    const first = await tokens.get(signal);
 
-    tokens.invalidate();
+    tokens.invalidate(first);
 
     expect(await tokens.get(signal)).toBe('token-2');
   });
@@ -90,5 +90,42 @@ describe('TokenProvider', () => {
 
     expect(JSON.stringify(entries)).not.toContain('token-1');
     expect(entries.some((e) => e.msg.includes('token refreshed'))).toBe(true);
+  });
+});
+
+describe('TokenProvider with concurrent collections', () => {
+  it("does not fail other callers when the first caller's deadline aborts the shared refresh", async () => {
+    let finish!: (token: { accessToken: string; expiresInSeconds: number }) => void;
+    let fetchSignal: AbortSignal | undefined;
+    const { tokens } = setup((signal) => {
+      fetchSignal = signal;
+      return new Promise((resolve) => {
+        finish = resolve;
+      });
+    });
+    const first = new AbortController();
+    const second = new AbortController();
+
+    const a = tokens.get(first.signal);
+    const b = tokens.get(second.signal);
+    first.abort(new AppError('UPSTREAM_TIMEOUT'));
+
+    await expect(a).rejects.toMatchObject({ code: 'UPSTREAM_TIMEOUT' });
+    expect(fetchSignal?.aborted).toBe(false);
+    finish({ accessToken: 'shared', expiresInSeconds: 3600 });
+    expect(await b).toBe('shared');
+  });
+
+  it('keeps a newer token when a caller invalidates the token it was rejected with', async () => {
+    const { fetcher } = countingFetcher();
+    const { tokens } = setup(fetcher);
+    const stale = await tokens.get(signal);
+    tokens.invalidate(stale);
+    const fresh = await tokens.get(signal);
+
+    tokens.invalidate(stale);
+
+    expect(fresh).toBe('token-2');
+    expect(await tokens.get(signal)).toBe('token-2');
   });
 });
