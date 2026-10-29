@@ -1,6 +1,7 @@
 import type { Database } from 'better-sqlite3';
 import type { ErrorCode, Post } from '@reddit-collector/contracts';
 import type { Clock } from '../clock.js';
+import { AppError } from '../errors.js';
 import type { Logger } from '../logger.js';
 import {
   type CollectionRow,
@@ -102,7 +103,7 @@ export function createRepository(db: Database, clock: Clock, logger: Logger): Co
     },
   );
 
-  return {
+  const repository: CollectionRepository = {
     recordSuccess: (term, posts, startedAt) => recordSuccessTx(term, posts, startedAt),
     recordFailure: (term, errorCode, startedAt) => {
       try {
@@ -128,6 +129,29 @@ export function createRepository(db: Database, clock: Clock, logger: Logger): Co
     ping: () => {
       db.prepare('SELECT 1').get();
     },
+  };
+  return withDbErrors(repository);
+}
+
+/** Turns any SQLite failure into DB_ERROR; the original stays as `cause` for logs only. */
+function withDbErrors(repository: CollectionRepository): CollectionRepository {
+  const guard =
+    <A extends unknown[], R>(fn: (...args: A) => R) =>
+    (...args: A): R => {
+      try {
+        return fn(...args);
+      } catch (cause) {
+        if (cause instanceof AppError) throw cause;
+        throw new AppError('DB_ERROR', undefined, { cause });
+      }
+    };
+  return {
+    recordSuccess: guard(repository.recordSuccess),
+    recordFailure: repository.recordFailure,
+    getLatestSuccess: guard(repository.getLatestSuccess),
+    getFreshSuccess: guard(repository.getFreshSuccess),
+    getFeed: guard(repository.getFeed),
+    ping: guard(repository.ping),
   };
 }
 

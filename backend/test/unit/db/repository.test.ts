@@ -3,6 +3,7 @@ import type { Database } from 'better-sqlite3';
 import { openDatabase } from '../../../src/db/connection.js';
 import { ensureSchema } from '../../../src/db/schema.js';
 import { createRepository, type CollectionRepository } from '../../../src/db/repository.js';
+import { AppError } from '../../../src/errors.js';
 import { FakeClock, makeLogger, makePost } from '../../helpers.js';
 
 let db: Database;
@@ -184,5 +185,28 @@ describe('getFreshSuccess', () => {
 describe('ping', () => {
   it('succeeds on an open database', () => {
     expect(() => repo.ping()).not.toThrow();
+  });
+});
+
+describe('database failures', () => {
+  it.each([
+    ['getFeed', (r: CollectionRepository) => r.getFeed(1)],
+    ['getLatestSuccess', (r: CollectionRepository) => r.getLatestSuccess('x')],
+    ['getFreshSuccess', (r: CollectionRepository) => r.getFreshSuccess('x', 60)],
+    ['recordSuccess', (r: CollectionRepository) => r.recordSuccess('x', [], new Date())],
+    ['ping', (r: CollectionRepository) => r.ping()],
+  ])('%s raises DB_ERROR with the SQLite error kept only as the cause', (_name, call) => {
+    db.close();
+
+    let thrown: unknown;
+    try {
+      call(repo);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(AppError);
+    expect(thrown).toMatchObject({ code: 'DB_ERROR', message: 'Could not save results locally.' });
+    expect((thrown as AppError).cause).toBeInstanceOf(Error);
   });
 });
