@@ -1,0 +1,1262 @@
+{
+  "data": {
+    "postFeed": {
+      "__typename": "Subreddit",
+      "id": "t5_2u14q",
+      "name": "ubisoft",
+      "prefixedName": "r/ubisoft",
+      "isQuarantined": false,
+      "title": "Ubisoft",
+      "type": "PUBLIC",
+      "subscribersCount": 76916,
+      "isNsfw": false,
+      "isSubscribed": false,
+      "isThumbnailsEnabled": true,
+      "isFavorite": false,
+      "path": "/r/ubisoft/",
+      "styles": {
+        "icon": "https://styles.redditmedia.com/t5_2u14q/styles/communityIcon_45tw7ki1az7e1.jpg?width=64&frame=1&auto=webp&s=64397d700478794ebfca4ea0de2fa5bd8cab4f74",
+        "legacyIcon": {
+          "__typename": "MediaSource",
+          "url": "https://b.thumbs.redditmedia.com/qpJiOTa5eSzBMhMdmWm3SbSIhuPAa1wGsioqpR6d32o.png",
+          "dimensions": {
+            "width": 256,
+            "height": 256
+          }
+        },
+        "primaryColor": "#C7A838",
+        "bannerBackgroundImage": "https://styles.redditmedia.com/t5_2u14q/styles/bannerBackgroundImage_eab6emoz32qg1.jpg?frame=1&auto=webp&format=pjpg&s=20196b68c541e311bb76a92e97789336e2aa74d8",
+        "legacyBannerBackgroundImage": "https://b.thumbs.redditmedia.com/itvDEfXSPSC89Mi-Ilzm-zq2mPSW8INwG00DPjPEb8Y.png",
+        "legacyPrimaryColor": "#0079D3"
+      },
+      "modPermissions": null,
+      "isTitleSafe": true,
+      "isUserBanned": false,
+      "isMediaInCommentsSettingShown": true,
+      "allowedMediaInComments": [
+        "GIPHY",
+        "STATIC",
+        "ANIMATED",
+        "VIDEO"
+      ],
+      "isMuted": false,
+      "isChannelsEnabled": false,
+      "tippingStatus": null,
+      "whitelistStatus": "ALL_ADS",
+      "elements": {
+        "pageInfo": {
+          "__typename": "PageInfo",
+          "hasNextPage": true,
+          "endCursor": "dDNfMXhjMzJqdQ=="
+        },
+        "dist": 4,
+        "edges": [
+          {
+            "node": {
+              "__typename": "SubredditPost",
+              "id": "t3_1wcg6wx",
+              "createdAt": "2026-09-10T11:14:02.764000+0000",
+              "editedAt": null,
+              "title": "No more Connect requirement on Steam",
+              "url": "https://i.redd.it/t7etvgyzeooh1.jpeg",
+              "content": null,
+              "domain": "i.redd.it",
+              "isSpoiler": false,
+              "isNsfw": false,
+              "isCommercialCommunication": false,
+              "isLocked": false,
+              "isSaved": false,
+              "isReactAllowed": false,
+              "isHidden": false,
+              "isGildable": true,
+              "isCrosspostable": false,
+              "isScoreHidden": false,
+              "isArchived": false,
+              "isStickied": true,
+              "isPollIncluded": false,
+              "poll": null,
+              "isFollowed": false,
+              "awardings": [
+                {
+                  "__typename": "AwardingTotal",
+                  "award": {
+                    "__typename": "Award",
+                    "id": "award_free_heartwarming",
+                    "name": "Heartwarming",
+                    "static_icon_16": {
+                      "__typename": "MediaSource",
+                      "url": "https://i.redd.it/snoovatar/snoo_assets/marketing/Heartwarming_16.png",
+                      "dimensions": {
+                        "width": 16,
+                        "height": 16
+                      }
+                    },
+                    "static_icon_24": {
+                      "__typename": "MediaSource",
+                      "url": "https://i.redd.it/snoovatar/snoo_assets/marketing/Heartwarming_24.png",
+                      "dimensions": {
+                        "width": 24,
+                        "height": 24
+                      }
+                    },
+                    "static_icon_32": {
+                      "__typename": "MediaSource",
+                      "url": "https://i.redd.it/snoovatar/snoo_assets/marketing/Heartwarming_32.png",
+                      "dimensions": {
+                        "width": 32,
+                        "height": 32
+                      }
+                    },
+                    "static_icon_48": {
+                      "__typename": "MediaSource",
+                      "url": "https://i.redd.it/snoovatar/snoo_assets/marketing/Heartwarming_48.png",
+                      "dimensions": {
+                        "width": 48,
+                        "height": 48
+                      }
+                    },
+                    "static_icon_64": {
+                      "__typename": "MediaSource",
+                      "url": "https://i.redd.it/snoovatar/snoo_assets/marketing/Heartwarming_64.png",
+                      "dimensions": {
+                        "width": 64,
+                        "height": 64
+                      }
+                    }
+                  },
+                  "total": 1
+                }
+              ],
+              "isContestMode": false,
+              "distinguishedAs": null,
+              "voteState": "NONE",
+              "score": 273,
+              "commentCount": 43,
+              "viewCount": null,
+              "authorFlair": {
+                "__typename": "AuthorFlair",
+                "text": "Just Dance Master",
+                "richtext": "[{\"e\":\"text\",\"t\":\"Just Dance Master\"}]",
+                "textColor": "DARK",
+                "template": {
+                  "id": "bce4e936-6cdb-11ef-8348-6e9a6c25f4a7",
+                  "backgroundColor": "#639C9C",
+                  "isModOnly": false,
+                  "isEditable": false
+                }
+              },
+              "flair": {
+                "__typename": "PostFlair",
+                "type": "richtext",
+                "text": "News & Announcements",
+                "richtext": "[{\"e\":\"text\",\"t\":\"News \\u0026 Announcements\"}]",
+                "textColor": "LIGHT",
+                "template": {
+                  "id": "64c3aec8-65c8-11ef-8838-e6a33532639a",
+                  "isEditable": false,
+                  "backgroundColor": "#4169E1"
+                }
+              },
+              "authorInfo": {
+                "__typename": "Redditor",
+                "id": "t2_hyiqi",
+                "name": "joujoubox",
+                "isCakeDayNow": false,
+                "newIcon": {
+                  "__typename": "MediaSource",
+                  "url": "https://preview.redd.it/snoovatar/avatars/94f91248-b5d8-41d1-87a9-9e52daed440e-headshot.png?auto=webp&s=78f641d0c4c1b91b9b430131a1471225d7aa6f56",
+                  "dimensions": {
+                    "width": 256,
+                    "height": 256
+                  }
+                },
+                "iconSmall": {
+                  "__typename": "MediaSource",
+                  "url": "https://preview.redd.it/snoovatar/avatars/94f91248-b5d8-41d1-87a9-9e52daed440e-headshot.png?width=50&height=50&auto=webp&s=6d9de6fcdfc163770171e89dfb824439dd084c45",
+                  "dimensions": {
+                    "width": 50,
+                    "height": 50
+                  }
+                },
+                "snoovatarIcon": {
+                  "__typename": "MediaSource",
+                  "url": "https://i.redd.it/snoovatar/avatars/94f91248-b5d8-41d1-87a9-9e52daed440e.png",
+                  "dimensions": {
+                    "width": 380,
+                    "height": 600
+                  }
+                },
+                "profile": {
+                  "isNsfw": false
+                },
+                "accountType": "USER"
+              },
+              "isThumbnailEnabled": true,
+              "thumbnail": {
+                "__typename": "MediaSource",
+                "url": "https://preview.redd.it/t7etvgyzeooh1.jpeg?width=140&height=95&auto=webp&s=ea4e42caf0eeba35c8f6c2891c092fe8ca27539a",
+                "dimensions": {
+                  "width": 140,
+                  "height": 95
+                }
+              },
+              "media": {
+                "__typename": "Media",
+                "previewMediaId": "t7etvgyzeooh1",
+                "still": {
+                  "__typename": "StillMedia",
+                  "source": {
+                    "__typename": "MediaSource",
+                    "url": "https://preview.redd.it/t7etvgyzeooh1.jpeg?auto=webp&s=998a51f6dd38d9f43f6160e2b2809297e6461d5a",
+                    "dimensions": {
+                      "width": 853,
+                      "height": 580
+                    }
+                  },
+                  "small": {
+                    "__typename": "MediaSource",
+                    "url": "https://preview.redd.it/t7etvgyzeooh1.jpeg?width=108&auto=webp&s=e245c7457d8cc3eb37321dc9391c5d61d5d848f8",
+                    "dimensions": {
+                      "width": 108,
+                      "height": 73
+                    }
+                  },
+                  "medium": {
+                    "__typename": "MediaSource",
+                    "url": "https://preview.redd.it/t7etvgyzeooh1.jpeg?width=216&auto=webp&s=10fe7e80a4cf052720625f2c3e03fad25ee6f260",
+                    "dimensions": {
+                      "width": 216,
+                      "height": 146
+                    }
+                  },
+                  "large": {
+                    "__typename": "MediaSource",
+                    "url": "https://preview.redd.it/t7etvgyzeooh1.jpeg?width=320&auto=webp&s=b489887da05ac692e654ae01785c50add77dc666",
+                    "dimensions": {
+                      "width": 320,
+                      "height": 217
+                    }
+                  },
+                  "xlarge": {
+                    "__typename": "MediaSource",
+                    "url": "https://preview.redd.it/t7etvgyzeooh1.jpeg?width=640&auto=webp&s=35a92b8abb301d7236ad968f1370ba9b0b7fc8b2",
+                    "dimensions": {
+                      "width": 640,
+                      "height": 435
+                    }
+                  },
+                  "xxlarge": null,
+                  "xxxlarge": null,
+                  "altText": null
+                },
+                "obfuscated_still": {
+                  "__typename": "StillMedia",
+                  "source": null,
+                  "small": null,
+                  "medium": null,
+                  "large": null,
+                  "xlarge": null,
+                  "xxlarge": null,
+                  "xxxlarge": null
+                },
+                "animated": null,
+                "streaming": null,
+                "video": null,
+                "packagedMedia": null,
+                "typeHint": "IMAGE",
+                "download": null
+              },
+              "moderationInfo": null,
+              "suggestedCommentSort": "LIVE",
+              "permalink": "/r/ubisoft/comments/1wcg6wx/no_more_connect_requirement_on_steam/",
+              "isSelfPost": false,
+              "postHint": "IMAGE",
+              "postEventInfo": null,
+              "gallery": null,
+              "outboundLink": {
+                "url": "https://i.redd.it/t7etvgyzeooh1.jpeg",
+                "expiresAt": "2026-10-30T00:25:17.619373+0000"
+              },
+              "postStats": {
+                "shareAllTotal": 52
+              },
+              "upvoteRatio": 0.989247311827957,
+              "reactedFrom": null,
+              "attributionInfo": null,
+              "crowdControlLevel": "OFF",
+              "isCrowdControlFilterEnabled": false,
+              "languageCode": "en",
+              "isTranslatable": false,
+              "isTranslated": false,
+              "removedByCategory": null,
+              "crosspostRoot": null
+            }
+          },
+          {
+            "node": {
+              "__typename": "SubredditPost",
+              "id": "t3_1w0zzct",
+              "createdAt": "2026-08-28T19:17:27.460000+0000",
+              "editedAt": null,
+              "title": "The Player Council Soft Launches Today on PC: Participate in the Game Development Process!",
+              "url": "https://news.ubisoft.com/en-us/article/5je4IbarSid2bQcLUjDI1J/the-player-council-soft-launches-today-on-pc-participate-in-the-game-development-process?_sp=0b0c76de-3436-4a76-bb1f-7cca3440d523.1787943145785",
+              "content": null,
+              "domain": "news.ubisoft.com",
+              "isSpoiler": false,
+              "isNsfw": false,
+              "isCommercialCommunication": false,
+              "isLocked": false,
+              "isSaved": false,
+              "isReactAllowed": false,
+              "isHidden": false,
+              "isGildable": true,
+              "isCrosspostable": false,
+              "isScoreHidden": false,
+              "isArchived": false,
+              "isStickied": true,
+              "isPollIncluded": false,
+              "poll": null,
+              "isFollowed": false,
+              "awardings": [],
+              "isContestMode": false,
+              "distinguishedAs": null,
+              "voteState": "NONE",
+              "score": 21,
+              "commentCount": 1,
+              "viewCount": null,
+              "authorFlair": null,
+              "flair": {
+                "__typename": "PostFlair",
+                "type": "richtext",
+                "text": "News & Announcements",
+                "richtext": "[{\"e\":\"text\",\"t\":\"News \\u0026 Announcements\"}]",
+                "textColor": "LIGHT",
+                "template": {
+                  "id": "64c3aec8-65c8-11ef-8838-e6a33532639a",
+                  "isEditable": false,
+                  "backgroundColor": "#4169E1"
+                }
+              },
+              "authorInfo": {
+                "__typename": "Redditor",
+                "id": "t2_2d5ja4lyqt",
+                "name": "Amutoji",
+                "isCakeDayNow": false,
+                "newIcon": {
+                  "__typename": "MediaSource",
+                  "url": "https://preview.redd.it/snoovatar/avatars/11397931-0286-4c20-86dc-5b0a775b5de2-headshot.png?auto=webp&s=a1b27b75f9be006dbca16d366f127354e8c8c532",
+                  "dimensions": {
+                    "width": 256,
+                    "height": 256
+                  }
+                },
+                "iconSmall": {
+                  "__typename": "MediaSource",
+                  "url": "https://preview.redd.it/snoovatar/avatars/11397931-0286-4c20-86dc-5b0a775b5de2-headshot.png?width=50&height=50&auto=webp&s=46aa433b90ed5a3268c8e42af248ef58aab3cac5",
+                  "dimensions": {
+                    "width": 50,
+                    "height": 50
+                  }
+                },
+                "snoovatarIcon": {
+                  "__typename": "MediaSource",
+                  "url": "https://i.redd.it/snoovatar/avatars/11397931-0286-4c20-86dc-5b0a775b5de2.png",
+                  "dimensions": {
+                    "width": 380,
+                    "height": 600
+                  }
+                },
+                "profile": {
+                  "isNsfw": false
+                },
+                "accountType": "USER"
+              },
+              "isThumbnailEnabled": true,
+              "thumbnail": {
+                "__typename": "MediaSource",
+                "url": "https://external-preview.redd.it/-BhrX7ABux-9uTjTvmAoJlHMka8MbSn7lBTSsO1tYa8.jpeg?width=140&height=78&auto=webp&s=a5f245fddb72227b26715d5967a0ce53fe716e9f",
+                "dimensions": {
+                  "width": 140,
+                  "height": 78
+                }
+              },
+              "media": {
+                "__typename": "Media",
+                "previewMediaId": "-BhrX7ABux-9uTjTvmAoJlHMka8MbSn7lBTSsO1tYa8",
+                "still": {
+                  "__typename": "StillMedia",
+                  "source": {
+                    "__typename": "MediaSource",
+                    "url": "https://external-preview.redd.it/-BhrX7ABux-9uTjTvmAoJlHMka8MbSn7lBTSsO1tYa8.jpeg?auto=webp&s=be8bc810ac7acbce7bb9e4f9911c648020dd9cac",
+                    "dimensions": {
+                      "width": 960,
+                      "height": 540
+                    }
+                  },
+                  "small": {
+                    "__typename": "MediaSource",
+                    "url": "https://external-preview.redd.it/-BhrX7ABux-9uTjTvmAoJlHMka8MbSn7lBTSsO1tYa8.jpeg?width=108&auto=webp&s=6d8416d239f1fa0c6aa79609b11de51f3c5ab6b5",
+                    "dimensions": {
+                      "width": 108,
+                      "height": 60
+                    }
+                  },
+                  "medium": {
+                    "__typename": "MediaSource",
+                    "url": "https://external-preview.redd.it/-BhrX7ABux-9uTjTvmAoJlHMka8MbSn7lBTSsO1tYa8.jpeg?width=216&auto=webp&s=867327202d13694911b6afc40c9edb2a79575b1e",
+                    "dimensions": {
+                      "width": 216,
+                      "height": 121
+                    }
+                  },
+                  "large": {
+                    "__typename": "MediaSource",
+                    "url": "https://external-preview.redd.it/-BhrX7ABux-9uTjTvmAoJlHMka8MbSn7lBTSsO1tYa8.jpeg?width=320&auto=webp&s=a35de966f4f32b2b9eee3e388d10ed40d0870652",
+                    "dimensions": {
+                      "width": 320,
+                      "height": 180
+                    }
+                  },
+                  "xlarge": {
+                    "__typename": "MediaSource",
+                    "url": "https://external-preview.redd.it/-BhrX7ABux-9uTjTvmAoJlHMka8MbSn7lBTSsO1tYa8.jpeg?width=640&auto=webp&s=bbad391b49b51575eb0946bbf7efb3624a6a5392",
+                    "dimensions": {
+                      "width": 640,
+                      "height": 360
+                    }
+                  },
+                  "xxlarge": {
+                    "__typename": "MediaSource",
+                    "url": "https://external-preview.redd.it/-BhrX7ABux-9uTjTvmAoJlHMka8MbSn7lBTSsO1tYa8.jpeg?width=960&auto=webp&s=f4e15459f1cc93767793adc2125e23916a6afc21",
+                    "dimensions": {
+                      "width": 960,
+                      "height": 540
+                    }
+                  },
+                  "xxxlarge": null,
+                  "altText": null
+                },
+                "obfuscated_still": {
+                  "__typename": "StillMedia",
+                  "source": null,
+                  "small": null,
+                  "medium": null,
+                  "large": null,
+                  "xlarge": null,
+                  "xxlarge": null,
+                  "xxxlarge": null
+                },
+                "animated": null,
+                "streaming": null,
+                "video": null,
+                "packagedMedia": null,
+                "typeHint": null,
+                "download": null
+              },
+              "moderationInfo": null,
+              "suggestedCommentSort": "LIVE",
+              "permalink": "/r/ubisoft/comments/1w0zzct/the_player_council_soft_launches_today_on_pc/",
+              "isSelfPost": false,
+              "postHint": "LINK",
+              "postEventInfo": null,
+              "gallery": null,
+              "outboundLink": {
+                "url": "https://out.reddit.com/t3_1w0zzct?app_name=android&token=AQAA7ePjatr7mQFKYa6b1vpUSglhLu3bcE66cZroHFiPO6QBFrHi&url=https%3A%2F%2Fnews.ubisoft.com%2Fen-us%2Farticle%2F5je4IbarSid2bQcLUjDI1J%2Fthe-player-council-soft-launches-today-on-pc-participate-in-the-game-development-process%3F_sp%3D0b0c76de-3436-4a76-bb1f-7cca3440d523.1787943145785",
+                "expiresAt": "2026-10-30T00:25:17.620079+0000"
+              },
+              "postStats": {
+                "shareAllTotal": 2
+              },
+              "upvoteRatio": 0.9565217391304348,
+              "reactedFrom": null,
+              "attributionInfo": null,
+              "crowdControlLevel": "OFF",
+              "isCrowdControlFilterEnabled": false,
+              "languageCode": "en",
+              "isTranslatable": false,
+              "isTranslated": false,
+              "removedByCategory": null,
+              "crosspostRoot": null
+            }
+          },
+          {
+            "node": {
+              "__typename": "SubredditPost",
+              "id": "t3_1xiinei",
+              "createdAt": "2026-10-29T12:30:13.117000+0000",
+              "editedAt": null,
+              "title": "Imagine if Watch Dogs launched like this back in 2014, what would be your reaction?",
+              "url": "https://www.reddit.com/gallery/1xiinei",
+              "content": {
+                "markdown": "We all know the infamous watch dogs downgrade back in 2014 od how the game was downgraded heavily in 2014 , so i downloaded a graphics mod to enhance it",
+                "richtext": "{\"document\":[{\"c\":[{\"e\":\"text\",\"t\":\"We all know the infamous watch dogs downgrade back in 2014 od how the game was downgraded heavily in 2014 , so i downloaded a graphics mod to enhance it\"}],\"e\":\"par\"}]}",
+                "html": "We all know the infamous watch dogs downgrade back in 2014 od how the game was downgraded heavily in 2014 , so i downloaded a graphics mod to enhance it",
+                "richtextMedia": [],
+                "preview": "We all know the infamous watch dogs downgrade back in 2014 od how the game was downgraded heavily in 2014 , so i downloaded a graphics mod to enhance it"
+              },
+              "domain": "reddit.com",
+              "isSpoiler": false,
+              "isNsfw": false,
+              "isCommercialCommunication": false,
+              "isLocked": false,
+              "isSaved": false,
+              "isReactAllowed": false,
+              "isHidden": false,
+              "isGildable": true,
+              "isCrosspostable": false,
+              "isScoreHidden": false,
+              "isArchived": false,
+              "isStickied": false,
+              "isPollIncluded": false,
+              "poll": null,
+              "isFollowed": false,
+              "awardings": [],
+              "isContestMode": false,
+              "distinguishedAs": null,
+              "voteState": "NONE",
+              "score": 29,
+              "commentCount": 19,
+              "viewCount": null,
+              "authorFlair": null,
+              "flair": {
+                "__typename": "PostFlair",
+                "type": "richtext",
+                "text": "Media",
+                "richtext": "[{\"e\":\"text\",\"t\":\"Media\"}]",
+                "textColor": "DARK",
+                "template": {
+                  "id": "5c1e7af0-65f0-11ef-810b-a21e50cc18fd",
+                  "isEditable": false,
+                  "backgroundColor": "#40E0D0"
+                }
+              },
+              "authorInfo": {
+                "__typename": "Redditor",
+                "id": "t2_1p4t4dnan2",
+                "name": "Mask_12-OG",
+                "isCakeDayNow": false,
+                "newIcon": {
+                  "__typename": "MediaSource",
+                  "url": "https://styles.redditmedia.com/t5_ef9oh9/styles/profileIcon_hugzia1996xh1.png?frame=1&auto=webp&crop=256%3A256%2Csmart&s=44dbb5d81898f8f11c92f582835e42ac0cb5f55a",
+                  "dimensions": {
+                    "width": 256,
+                    "height": 256
+                  }
+                },
+                "iconSmall": {
+                  "__typename": "MediaSource",
+                  "url": "https://styles.redditmedia.com/t5_ef9oh9/styles/profileIcon_hugzia1996xh1.png?width=50&height=50&frame=1&auto=webp&crop=50%3A50%2Csmart&s=5285c96c2dae4b4837f4d9ce16b02df2719daed6",
+                  "dimensions": {
+                    "width": 50,
+                    "height": 50
+                  }
+                },
+                "snoovatarIcon": null,
+                "profile": {
+                  "isNsfw": false
+                },
+                "accountType": "USER"
+              },
+              "isThumbnailEnabled": true,
+              "thumbnail": {
+                "__typename": "MediaSource",
+                "url": "https://preview.redd.it/8rjz5gn2heyh1.png?width=140&height=78&auto=webp&s=580eb3edaeb73665bb9c8491ae0845f28a249274",
+                "dimensions": {
+                  "width": 140,
+                  "height": 78
+                }
+              },
+              "media": null,
+              "moderationInfo": null,
+              "suggestedCommentSort": "LIVE",
+              "permalink": "/r/ubisoft/comments/1xiinei/imagine_if_watch_dogs_launched_like_this_back_in/",
+              "isSelfPost": false,
+              "postHint": null,
+              "postEventInfo": null,
+              "gallery": {
+                "items": [
+                  {
+                    "__typename": "PostGalleryItem",
+                    "id": "1082836689",
+                    "caption": null,
+                    "subcaptionStrikethrough": null,
+                    "outboundUrl": null,
+                    "callToAction": null,
+                    "displayAddress": null,
+                    "adEvents": null,
+                    "media": {
+                      "__typename": "ImageAsset",
+                      "id": "8rjz5gn2heyh1",
+                      "userId": "t2_1p4t4dnan2",
+                      "mimetype": "image/png",
+                      "width": 1920,
+                      "height": 1080,
+                      "status": "VALID",
+                      "url": "https://i.redd.it/8rjz5gn2heyh1.png",
+                      "small": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/8rjz5gn2heyh1.png?width=108&auto=webp&s=1c67df7d0e17f37bfafb2bbd0fb6fc817fd8df05",
+                        "dimensions": {
+                          "width": 108,
+                          "height": 60
+                        }
+                      },
+                      "medium": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/8rjz5gn2heyh1.png?width=216&auto=webp&s=114c3e94343d91b49c4e57c7650fe5a8af797a0c",
+                        "dimensions": {
+                          "width": 216,
+                          "height": 121
+                        }
+                      },
+                      "large": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/8rjz5gn2heyh1.png?width=320&auto=webp&s=81ef1b4e400daf3549bb569c9fa72cf3a487c69f",
+                        "dimensions": {
+                          "width": 320,
+                          "height": 180
+                        }
+                      },
+                      "xlarge": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/8rjz5gn2heyh1.png?width=640&auto=webp&s=fbb7b66da8834b8326902632ce0846081647be5e",
+                        "dimensions": {
+                          "width": 640,
+                          "height": 360
+                        }
+                      },
+                      "xxlarge": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/8rjz5gn2heyh1.png?width=960&auto=webp&s=532e140b19e2befbb851c57f6c3a84bdd13906f1",
+                        "dimensions": {
+                          "width": 960,
+                          "height": 540
+                        }
+                      },
+                      "xxxlarge": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/8rjz5gn2heyh1.png?width=1080&auto=webp&s=110bc3841ee7ddcf16c8dc3c67045e2adfaa52d6",
+                        "dimensions": {
+                          "width": 1080,
+                          "height": 607
+                        }
+                      },
+                      "obfuscated_small": null,
+                      "obfuscated_medium": null,
+                      "obfuscated_large": null,
+                      "obfuscated_xlarge": null,
+                      "obfuscated_xxlarge": null,
+                      "obfuscated_xxxlarge": null
+                    }
+                  },
+                  {
+                    "__typename": "PostGalleryItem",
+                    "id": "1082836690",
+                    "caption": null,
+                    "subcaptionStrikethrough": null,
+                    "outboundUrl": null,
+                    "callToAction": null,
+                    "displayAddress": null,
+                    "adEvents": null,
+                    "media": {
+                      "__typename": "ImageAsset",
+                      "id": "rsrssgn2heyh1",
+                      "userId": "t2_1p4t4dnan2",
+                      "mimetype": "image/png",
+                      "width": 1920,
+                      "height": 1080,
+                      "status": "VALID",
+                      "url": "https://i.redd.it/rsrssgn2heyh1.png",
+                      "small": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/rsrssgn2heyh1.png?width=108&auto=webp&s=748b2cd184bd3a2c57ee5e1a6011cf9b29b322d1",
+                        "dimensions": {
+                          "width": 108,
+                          "height": 60
+                        }
+                      },
+                      "medium": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/rsrssgn2heyh1.png?width=216&auto=webp&s=b2b3106327e54cabdefb9696221483b3720e3149",
+                        "dimensions": {
+                          "width": 216,
+                          "height": 121
+                        }
+                      },
+                      "large": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/rsrssgn2heyh1.png?width=320&auto=webp&s=74becf614ec351bf700c642983844354573b56ea",
+                        "dimensions": {
+                          "width": 320,
+                          "height": 180
+                        }
+                      },
+                      "xlarge": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/rsrssgn2heyh1.png?width=640&auto=webp&s=b2b4e2065df3d665f95c9a1d7159d73cb7934d6d",
+                        "dimensions": {
+                          "width": 640,
+                          "height": 360
+                        }
+                      },
+                      "xxlarge": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/rsrssgn2heyh1.png?width=960&auto=webp&s=aaa5c74d95629b8b8bbe649e3a5dd1d09d753d19",
+                        "dimensions": {
+                          "width": 960,
+                          "height": 540
+                        }
+                      },
+                      "xxxlarge": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/rsrssgn2heyh1.png?width=1080&auto=webp&s=78d1d913cc979ef92627df0e9f88035d10ef9339",
+                        "dimensions": {
+                          "width": 1080,
+                          "height": 607
+                        }
+                      },
+                      "obfuscated_small": null,
+                      "obfuscated_medium": null,
+                      "obfuscated_large": null,
+                      "obfuscated_xlarge": null,
+                      "obfuscated_xxlarge": null,
+                      "obfuscated_xxxlarge": null
+                    }
+                  },
+                  {
+                    "__typename": "PostGalleryItem",
+                    "id": "1082836691",
+                    "caption": null,
+                    "subcaptionStrikethrough": null,
+                    "outboundUrl": null,
+                    "callToAction": null,
+                    "displayAddress": null,
+                    "adEvents": null,
+                    "media": {
+                      "__typename": "ImageAsset",
+                      "id": "stgy9in2heyh1",
+                      "userId": "t2_1p4t4dnan2",
+                      "mimetype": "image/png",
+                      "width": 1920,
+                      "height": 1080,
+                      "status": "VALID",
+                      "url": "https://i.redd.it/stgy9in2heyh1.png",
+                      "small": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/stgy9in2heyh1.png?width=108&auto=webp&s=43c9f5df446b673f59462a8127e94926efef4375",
+                        "dimensions": {
+                          "width": 108,
+                          "height": 60
+                        }
+                      },
+                      "medium": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/stgy9in2heyh1.png?width=216&auto=webp&s=57f130b087eb9be5c140d079d829164eb84366a1",
+                        "dimensions": {
+                          "width": 216,
+                          "height": 121
+                        }
+                      },
+                      "large": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/stgy9in2heyh1.png?width=320&auto=webp&s=62b1078d23c801a5dafd04df65528990435c0982",
+                        "dimensions": {
+                          "width": 320,
+                          "height": 180
+                        }
+                      },
+                      "xlarge": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/stgy9in2heyh1.png?width=640&auto=webp&s=6f312f87a93f8a45fd3bb4b7678574a65af931e3",
+                        "dimensions": {
+                          "width": 640,
+                          "height": 360
+                        }
+                      },
+                      "xxlarge": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/stgy9in2heyh1.png?width=960&auto=webp&s=9353e9a82c85e5c12f25403f2fac80dfd4816800",
+                        "dimensions": {
+                          "width": 960,
+                          "height": 540
+                        }
+                      },
+                      "xxxlarge": {
+                        "__typename": "MediaSource",
+                        "url": "https://preview.redd.it/stgy9in2heyh1.png?width=1080&auto=webp&s=81dcc0751630d17f72fe40edea175da2e6ff60b1",
+                        "dimensions": {
+                          "width": 1080,
+                          "height": 607
+                        }
+                      },
+                      "obfuscated_small": null,
+                      "obfuscated_medium": null,
+                      "obfuscated_large": null,
+                      "obfuscated_xlarge": null,
+                      "obfuscated_xxlarge": null,
+                      "obfuscated_xxxlarge": null
+                    }
+                  }
+                ]
+              },
+              "outboundLink": {
+                "url": "https://www.reddit.com/gallery/1xiinei",
+                "expiresAt": "2026-10-30T00:25:17.620348+0000"
+              },
+              "postStats": {
+                "shareAllTotal": 0
+              },
+              "upvoteRatio": 0.8536585365853658,
+              "reactedFrom": null,
+              "attributionInfo": null,
+              "crowdControlLevel": "OFF",
+              "isCrowdControlFilterEnabled": false,
+              "languageCode": "en",
+              "isTranslatable": false,
+              "isTranslated": false,
+              "removedByCategory": null,
+              "crosspostRoot": null
+            }
+          },
+          {
+            "node": {
+              "__typename": "SubredditPost",
+              "id": "t3_1xitc4u",
+              "createdAt": "2026-10-29T19:17:16.396000+0000",
+              "editedAt": null,
+              "title": "Have you supported or not the Modern Day in this survey? What is your position on it?",
+              "url": "https://www.reddit.com/r/OkBuddyTemplar/comments/1xitbpx/have_you_supported_or_not_the_modern_day_in_this/",
+              "content": null,
+              "domain": "reddit.com",
+              "isSpoiler": false,
+              "isNsfw": false,
+              "isCommercialCommunication": false,
+              "isLocked": false,
+              "isSaved": false,
+              "isReactAllowed": false,
+              "isHidden": false,
+              "isGildable": true,
+              "isCrosspostable": false,
+              "isScoreHidden": false,
+              "isArchived": false,
+              "isStickied": false,
+              "isPollIncluded": false,
+              "poll": null,
+              "isFollowed": false,
+              "awardings": [],
+              "isContestMode": false,
+              "distinguishedAs": null,
+              "voteState": "NONE",
+              "score": 1,
+              "commentCount": 0,
+              "viewCount": null,
+              "authorFlair": null,
+              "flair": {
+                "__typename": "PostFlair",
+                "type": "richtext",
+                "text": "Discussions & Questions",
+                "richtext": "[{\"e\":\"text\",\"t\":\"Discussions \\u0026 Questions\"}]",
+                "textColor": "DARK",
+                "template": {
+                  "id": "6c9b4818-65c8-11ef-abda-e2a5f8e2a65c",
+                  "isEditable": false,
+                  "backgroundColor": "#87CEEB"
+                }
+              },
+              "authorInfo": {
+                "__typename": "Redditor",
+                "id": "t2_6kskwlqg",
+                "name": "Legitimate_Cake_5137",
+                "isCakeDayNow": false,
+                "newIcon": {
+                  "__typename": "MediaSource",
+                  "url": "https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png",
+                  "dimensions": {
+                    "width": 256,
+                    "height": 256
+                  }
+                },
+                "iconSmall": {
+                  "__typename": "MediaSource",
+                  "url": "https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png",
+                  "dimensions": {
+                    "width": 256,
+                    "height": 256
+                  }
+                },
+                "snoovatarIcon": null,
+                "profile": {
+                  "isNsfw": true
+                },
+                "accountType": "USER"
+              },
+              "isThumbnailEnabled": false,
+              "thumbnail": null,
+              "media": null,
+              "moderationInfo": null,
+              "suggestedCommentSort": "LIVE",
+              "permalink": "/r/ubisoft/comments/1xitc4u/have_you_supported_or_not_the_modern_day_in_this/",
+              "isSelfPost": false,
+              "postHint": null,
+              "postEventInfo": null,
+              "gallery": null,
+              "outboundLink": {
+                "url": "https://www.reddit.com/r/OkBuddyTemplar/comments/1xitbpx/have_you_supported_or_not_the_modern_day_in_this/",
+                "expiresAt": "2026-10-30T00:25:17.619776+0000"
+              },
+              "postStats": {
+                "shareAllTotal": 0
+              },
+              "upvoteRatio": 1,
+              "reactedFrom": null,
+              "attributionInfo": null,
+              "crowdControlLevel": "OFF",
+              "isCrowdControlFilterEnabled": false,
+              "languageCode": "en",
+              "isTranslatable": false,
+              "isTranslated": false,
+              "removedByCategory": null,
+              "crosspostRoot": {
+                "type": "POST",
+                "post": {
+                  "__typename": "SubredditPost",
+                  "id": "t3_1xitbpx",
+                  "createdAt": "2026-10-29T19:16:47.921000+0000",
+                  "editedAt": null,
+                  "title": "Have you supported or not the Modern Day in this survey? What is your position on it?",
+                  "url": "https://www.reddit.com/r/OkBuddyTemplar/comments/1xitbpx/have_you_supported_or_not_the_modern_day_in_this/",
+                  "content": {
+                    "markdown": "This new official survey for the community (https://ubisoft.ca1.qualtrics.com/jfe/form/SV\\_9XEkL1EjuFhRNzw?SOURCE=Reddit) focuses on many things, included the modern day. It seems that Ubisoft wants to have a clear idea of the community's opinions on it to understand how to manage it better. Therefore, what is your position on the modern day? What do you hope that Ubisoft will understand from this survey?",
+                    "richtext": "{\"document\":[{\"c\":[{\"e\":\"text\",\"t\":\"This new official survey for the community (\"},{\"e\":\"link\",\"t\":\"https://ubisoft.ca1.qualtrics.com/jfe/form/SV_9XEkL1EjuFhRNzw?SOURCE=Reddit\",\"u\":\"https://ubisoft.ca1.qualtrics.com/jfe/form/SV_9XEkL1EjuFhRNzw?SOURCE=Reddit\"},{\"e\":\"text\",\"t\":\") focuses on many things, included the modern day. It seems that Ubisoft wants to have a clear idea of the community's opinions on it to understand how to manage it better. Therefore, what is your position on the modern day? What do you hope that Ubisoft will understand from this survey?\"}],\"e\":\"par\"}]}",
+                    "html": "This new official survey for the community (https://ubisoft.ca1.qualtrics.com/jfe/form/SV_9XEkL1EjuFhRNzw?SOURCE=Reddit) focuses on many things, included the modern day. It seems that Ubisoft wants to have a clear idea of the community's opinions on it to understand how to manage it better. Therefore, what is your position on the modern day? What do you hope that Ubisoft will understand from this survey?",
+                    "richtextMedia": [],
+                    "preview": "This new official survey for the community (https://ubisoft.ca1.qualtrics.com/jfe/form/SV_9XEkL1EjuFhRNzw?SOURCE=Reddit) focuses on many things, included the modern day. It seems that Ubisoft wants to have a clear idea of the community's opinions on it to understand how to manage it better. Therefor"
+                  },
+                  "domain": "self.OkBuddyTemplar",
+                  "isSpoiler": false,
+                  "isNsfw": false,
+                  "isCommercialCommunication": false,
+                  "isLocked": false,
+                  "isSaved": false,
+                  "isReactAllowed": false,
+                  "isHidden": false,
+                  "isGildable": true,
+                  "isCrosspostable": false,
+                  "isScoreHidden": false,
+                  "isArchived": false,
+                  "isStickied": false,
+                  "isPollIncluded": false,
+                  "poll": null,
+                  "isFollowed": false,
+                  "awardings": [],
+                  "isContestMode": false,
+                  "distinguishedAs": null,
+                  "voteState": "NONE",
+                  "score": 1,
+                  "commentCount": 0,
+                  "viewCount": null,
+                  "authorFlair": null,
+                  "flair": {
+                    "__typename": "PostFlair",
+                    "type": "text",
+                    "text": "Unjerked post.",
+                    "richtext": null,
+                    "textColor": "DARK",
+                    "template": {
+                      "id": "5f13559a-85f3-11f0-a5ee-ce8acbe18014",
+                      "isEditable": false,
+                      "backgroundColor": "#DADADA"
+                    }
+                  },
+                  "authorInfo": {
+                    "__typename": "Redditor",
+                    "id": "t2_6kskwlqg",
+                    "name": "Legitimate_Cake_5137",
+                    "isCakeDayNow": false,
+                    "newIcon": {
+                      "__typename": "MediaSource",
+                      "url": "https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png",
+                      "dimensions": {
+                        "width": 256,
+                        "height": 256
+                      }
+                    },
+                    "iconSmall": {
+                      "__typename": "MediaSource",
+                      "url": "https://www.redditstatic.com/avatars/defaults/v2/avatar_default_0.png",
+                      "dimensions": {
+                        "width": 256,
+                        "height": 256
+                      }
+                    },
+                    "snoovatarIcon": null,
+                    "profile": {
+                      "isNsfw": true
+                    },
+                    "accountType": "USER"
+                  },
+                  "isThumbnailEnabled": false,
+                  "thumbnail": null,
+                  "media": null,
+                  "moderationInfo": null,
+                  "suggestedCommentSort": null,
+                  "permalink": "/r/OkBuddyTemplar/comments/1xitbpx/have_you_supported_or_not_the_modern_day_in_this/",
+                  "isSelfPost": true,
+                  "postHint": null,
+                  "postEventInfo": null,
+                  "gallery": null,
+                  "outboundLink": {
+                    "url": "https://www.reddit.com/r/OkBuddyTemplar/comments/1xitbpx/have_you_supported_or_not_the_modern_day_in_this/",
+                    "expiresAt": "2026-10-30T00:25:17.621206+0000"
+                  },
+                  "postStats": {
+                    "shareAllTotal": 0
+                  },
+                  "upvoteRatio": 1,
+                  "reactedFrom": null,
+                  "attributionInfo": null,
+                  "crowdControlLevel": "OFF",
+                  "isCrowdControlFilterEnabled": false,
+                  "languageCode": "en",
+                  "isTranslatable": false,
+                  "isTranslated": false,
+                  "removedByCategory": null,
+                  "subreddit": {
+                    "__typename": "Subreddit",
+                    "id": "t5_fb2q7v",
+                    "name": "OkBuddyTemplar",
+                    "prefixedName": "r/OkBuddyTemplar",
+                    "isQuarantined": false,
+                    "title": "OkBuddyTemplar",
+                    "type": "PUBLIC",
+                    "subscribersCount": 1512,
+                    "isNsfw": false,
+                    "isSubscribed": false,
+                    "isThumbnailsEnabled": true,
+                    "isFavorite": false,
+                    "path": "/r/OkBuddyTemplar/",
+                    "styles": {
+                      "icon": "https://styles.redditmedia.com/t5_fb2q7v/styles/communityIcon_ilk9xn73n6mf1.png?width=64&frame=1&auto=webp&s=cbff56e749648d9f76e566483ed392e1210cc4f4",
+                      "legacyIcon": null,
+                      "primaryColor": null,
+                      "bannerBackgroundImage": "https://styles.redditmedia.com/t5_fb2q7v/styles/bannerBackgroundImage_wej8ykg3n6mf1.png?frame=1&auto=webp&s=31ef7547c4427171cf8574724845c3195ab715d1",
+                      "legacyBannerBackgroundImage": null,
+                      "legacyPrimaryColor": null
+                    },
+                    "modPermissions": null,
+                    "isTitleSafe": true,
+                    "isUserBanned": false,
+                    "isMediaInCommentsSettingShown": true,
+                    "allowedMediaInComments": [
+                      "GIPHY",
+                      "STATIC",
+                      "ANIMATED",
+                      "EXPRESSION",
+                      "VIDEO"
+                    ],
+                    "isMuted": false,
+                    "isChannelsEnabled": false,
+                    "tippingStatus": null,
+                    "whitelistStatus": "ALL_ADS"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "node": {
+              "__typename": "SubredditPost",
+              "id": "t3_1xipr3j",
+              "createdAt": "2026-10-29T17:04:31.693000+0000",
+              "editedAt": null,
+              "title": "Assassin's Creed: Fall 2026 Update",
+              "url": "https://youtu.be/AliK0oRpXPs?is=xVU_4yHqMoj15_xP",
+              "content": null,
+              "domain": "youtu.be",
+              "isSpoiler": false,
+              "isNsfw": false,
+              "isCommercialCommunication": false,
+              "isLocked": false,
+              "isSaved": false,
+              "isReactAllowed": false,
+              "isHidden": false,
+              "isGildable": true,
+              "isCrosspostable": false,
+              "isScoreHidden": false,
+              "isArchived": false,
+              "isStickied": false,
+              "isPollIncluded": false,
+              "poll": null,
+              "isFollowed": false,
+              "awardings": [],
+              "isContestMode": false,
+              "distinguishedAs": null,
+              "voteState": "NONE",
+              "score": 1,
+              "commentCount": 0,
+              "viewCount": null,
+              "authorFlair": null,
+              "flair": {
+                "__typename": "PostFlair",
+                "type": "richtext",
+                "text": "Discussions & Questions",
+                "richtext": "[{\"e\":\"text\",\"t\":\"Discussions \\u0026 Questions\"}]",
+                "textColor": "DARK",
+                "template": {
+                  "id": "6c9b4818-65c8-11ef-abda-e2a5f8e2a65c",
+                  "isEditable": false,
+                  "backgroundColor": "#87CEEB"
+                }
+              },
+              "authorInfo": {
+                "__typename": "Redditor",
+                "id": "t2_4rfyfhw",
+                "name": "SuddenDepact",
+                "isCakeDayNow": false,
+                "newIcon": {
+                  "__typename": "MediaSource",
+                  "url": "https://preview.redd.it/snoovatar/avatars/da0a8ede-7d90-40ea-a535-a99e7bf794fe-headshot.png?auto=webp&s=f7e037a30150ad2571e689dad39da5e7e70bb7be",
+                  "dimensions": {
+                    "width": 256,
+                    "height": 256
+                  }
+                },
+                "iconSmall": {
+                  "__typename": "MediaSource",
+                  "url": "https://preview.redd.it/snoovatar/avatars/da0a8ede-7d90-40ea-a535-a99e7bf794fe-headshot.png?width=50&height=50&auto=webp&s=396072f747d861b835c3afa0539e11ea6a6f59fa",
+                  "dimensions": {
+                    "width": 50,
+                    "height": 50
+                  }
+                },
+                "snoovatarIcon": {
+                  "__typename": "MediaSource",
+                  "url": "https://i.redd.it/snoovatar/avatars/da0a8ede-7d90-40ea-a535-a99e7bf794fe.png",
+                  "dimensions": {
+                    "width": 380,
+                    "height": 600
+                  }
+                },
+                "profile": {
+                  "isNsfw": false
+                },
+                "accountType": "USER"
+              },
+              "isThumbnailEnabled": true,
+              "thumbnail": {
+                "__typename": "MediaSource",
+                "url": "https://external-preview.redd.it/E39volJ5J5ja9yMT2vBOSeLKM7tiEBwslGJfcSVt-eQ.jpeg?width=140&height=105&auto=webp&s=21f511f36765e8541801f087c82269e74d631709",
+                "dimensions": {
+                  "width": 140,
+                  "height": 105
+                }
+              },
+              "media": {
+                "__typename": "Media",
+                "previewMediaId": "E39volJ5J5ja9yMT2vBOSeLKM7tiEBwslGJfcSVt-eQ",
+                "still": {
+                  "__typename": "StillMedia",
+                  "source": {
+                    "__typename": "MediaSource",
+                    "url": "https://external-preview.redd.it/E39volJ5J5ja9yMT2vBOSeLKM7tiEBwslGJfcSVt-eQ.jpeg?format=pjpg&auto=webp&s=4fa9d3d4c1dd9e43064d1e87482effd3978f61d9",
+                    "dimensions": {
+                      "width": 480,
+                      "height": 360
+                    }
+                  },
+                  "small": {
+                    "__typename": "MediaSource",
+                    "url": "https://external-preview.redd.it/E39volJ5J5ja9yMT2vBOSeLKM7tiEBwslGJfcSVt-eQ.jpeg?width=108&format=pjpg&auto=webp&s=4dbc32477883e406b177b2cc76941d31322765c6",
+                    "dimensions": {
+                      "width": 108,
+                      "height": 81
+                    }
+                  },
+                  "medium": {
+                    "__typename": "MediaSource",
+                    "url": "https://external-preview.redd.it/E39volJ5J5ja9yMT2vBOSeLKM7tiEBwslGJfcSVt-eQ.jpeg?width=216&format=pjpg&auto=webp&s=2a99aacf037afd37be2da3878ffe46a26074f496",
+                    "dimensions": {
+                      "width": 216,
+                      "height": 162
+                    }
+                  },
+                  "large": {
+                    "__typename": "MediaSource",
+                    "url": "https://external-preview.redd.it/E39volJ5J5ja9yMT2vBOSeLKM7tiEBwslGJfcSVt-eQ.jpeg?width=320&format=pjpg&auto=webp&s=b6b0411c56ee8afb209a666e3070a3fde41b9846",
+                    "dimensions": {
+                      "width": 320,
+                      "height": 240
+                    }
+                  },
+                  "xlarge": null,
+                  "xxlarge": null,
+                  "xxxlarge": null,
+                  "altText": null
+                },
+                "obfuscated_still": {
+                  "__typename": "StillMedia",
+                  "source": null,
+                  "small": null,
+                  "medium": null,
+                  "large": null,
+                  "xlarge": null,
+                  "xxlarge": null,
+                  "xxxlarge": null
+                },
+                "animated": null,
+                "streaming": null,
+                "video": {
+                  "__typename": "VideoMedia",
+                  "embedHtml": "<iframe width=\"356\" height=\"200\" src=\"https://www.youtube.com/embed/AliK0oRpXPs?feature=oembed\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen title=\"Assassin&#39;s Creed: Fall 2026 Update\"></iframe>",
+                  "url": "https://youtu.be/AliK0oRpXPs?is=xVU_4yHqMoj15_xP",
+                  "dimensions": {
+                    "width": 356,
+                    "height": 200
+                  },
+                  "attribution": {
+                    "title": "Assassin's Creed: Fall 2026 Update",
+                    "description": null,
+                    "authorName": "Assassin's Creed",
+                    "authorUrl": "https://www.youtube.com/@assassinscreed",
+                    "providerName": "YouTube",
+                    "providerUrl": "https://www.youtube.com/"
+                  }
+                },
+                "packagedMedia": null,
+                "typeHint": "EMBED",
+                "download": null
+              },
+              "moderationInfo": null,
+              "suggestedCommentSort": "LIVE",
+              "permalink": "/r/ubisoft/comments/1xipr3j/assassins_creed_fall_2026_update/",
+              "isSelfPost": false,
+              "postHint": "RICH_VIDEO",
+              "postEventInfo": null,
+              "gallery": null,
+              "outboundLink": {
+                "url": "https://out.reddit.com/t3_1xipr3j?app_name=android&token=AQAA7ePjamhMaOxNjGAmV13YBhfxUDZX-nRFFz13wBDxab1wI5hW&url=https%3A%2F%2Fyoutu.be%2FAliK0oRpXPs%3Fis%3DxVU_4yHqMoj15_xP",
+                "expiresAt": "2026-10-30T00:25:17.621751+0000"
+              },
+              "postStats": {
+                "shareAllTotal": 0
+              },
+              "upvoteRatio": 1,
+              "reactedFrom": null,
+              "attributionInfo": null,
+              "crowdControlLevel": "OFF",
+              "isCrowdControlFilterEnabled": false,
+              "languageCode": "en",
+              "isTranslatable": false,
+              "isTranslated": false,
+              "removedByCategory": null,
+              "crosspostRoot": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  "extensions": {
+    "traceID": "9ae53cacbf7512dac70c723ca3e5f689"
+  }
+}
