@@ -1,4 +1,4 @@
-export function LoadingState({ term }: { term: string }) {
+export function LoadingState({ term }) {
   return (
     <div className="loading" role="status">
       <span className="spinner" aria-hidden="true" />

@@ -1,4 +1,3 @@
-import type { CollectionResponse, HealthResponse } from '@reddit-collector/contracts';
 import { useEffect, useState } from 'react';
 import { DEFAULT_HEALTH, getHealth, getPosts } from './api/client';
 import { EmptyState } from './components/EmptyState';
@@ -11,13 +10,11 @@ import { readLastTerm, saveLastTerm } from './lib/lastTerm';
 import { useNow } from './lib/useNow';
 import { visibleFeed } from './state/collectionReducer';
 import { useCollection } from './state/useCollection';
-
 export function App() {
   const { view, submit, retry, restore } = useCollection();
-  const [health, setHealth] = useState<HealthResponse>(DEFAULT_HEALTH);
+  const [health, setHealth] = useState(DEFAULT_HEALTH);
   const [initialTerm] = useState(() => readLastTerm() ?? '');
   const now = useNow();
-
   useEffect(() => {
     const controller = new AbortController();
     void getHealth({ signal: controller.signal }).then(setHealth);
@@ -28,16 +25,13 @@ export function App() {
     }
     return () => controller.abort();
   }, [initialTerm, restore]);
-
   const feed = visibleFeed(view);
   const loading = view.kind === 'loading';
   const shownTerm = feed?.collection?.term;
-
-  const search = (term: string) => {
+  const search = (term) => {
     saveLastTerm(term);
     submit(term, false);
   };
-
   return (
     <div className="page">
       <header className="page-header">
@@ -77,17 +71,7 @@ export function App() {
   );
 }
 
-function Feed({
-  feed,
-  view,
-  now,
-  health,
-}: {
-  feed: CollectionResponse;
-  view: string;
-  now: Date;
-  health: HealthResponse;
-}) {
+function Feed({ feed, view, now, health }) {
   if (!feed.collection) return null;
   return (
     <section className={view === 'loading' ? 'feed dimmed' : 'feed'} aria-busy={view === 'loading'}>

@@ -1,10 +1,8 @@
-import type { Post } from '@reddit-collector/contracts';
 import { formatCount, isSafeRedditUrl, relativeTime } from '../lib/format';
 import { Icon } from './Icon';
+const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
-const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
-
-export function PostCard({ post, now }: { post: Post; now: Date }) {
+export function PostCard({ post, now }) {
   const safeLink = isSafeRedditUrl(post.permalink);
   return (
     <article className="card">

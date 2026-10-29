@@ -1,5 +1,7 @@
 const MINUTE = 60;
+
 const HOUR = 60 * MINUTE;
+
 const DAY = 24 * HOUR;
 
 const dateFormat = new Intl.DateTimeFormat('en-US', {
@@ -10,7 +12,7 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
 });
 
 /** "just now", "49 min ago", "3 h ago", "2 d ago", then a date after 30 days. */
-export function relativeTime(iso: string, now: Date): string {
+export function relativeTime(iso, now) {
   const date = new Date(iso);
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
   if (seconds < 45) return 'just now';
@@ -21,7 +23,7 @@ export function relativeTime(iso: string, now: Date): string {
 }
 
 /** 1234 → "1.2k", 1250000 → "1.3M"; exact below 1000. */
-export function formatCount(value: number): string {
+export function formatCount(value) {
   const abs = Math.abs(value);
   if (abs < 1000) return String(value);
   const [divisor, suffix] = abs < 1_000_000 ? [1000, 'k'] : [1_000_000, 'M'];
@@ -30,7 +32,7 @@ export function formatCount(value: number): string {
 }
 
 /** Only https links to reddit.com or its subdomains are rendered. */
-export function isSafeRedditUrl(url: string): boolean {
+export function isSafeRedditUrl(url) {
   try {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();

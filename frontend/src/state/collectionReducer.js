@@ -1,22 +1,19 @@
-import type { CollectionResponse } from '@reddit-collector/contracts';
-import type { UiErrorBody } from '../api/client';
-
-export type View =
-  | { kind: 'idle' }
-  | { kind: 'loading'; term: string; force: boolean; previous?: CollectionResponse }
-  | { kind: 'success'; data: CollectionResponse }
-  | { kind: 'empty'; data: CollectionResponse }
-  | { kind: 'error'; term: string; error: UiErrorBody; lastGood?: CollectionResponse };
-
-export type Action =
-  | { type: 'submit'; term: string; force: boolean }
-  | { type: 'retry' }
-  | { type: 'resolved'; data: CollectionResponse }
-  | { type: 'failed'; error: UiErrorBody; lastGood?: CollectionResponse }
-  | { type: 'restored'; data: CollectionResponse };
+/**
+ * The five things the screen can show, and what moves between them.
+ *
+ * View (state):
+ *   { kind: 'idle' }
+ *   { kind: 'loading', term, force, previous? }   previous: the feed kept visible, dimmed
+ *   { kind: 'success', data }                     data: a CollectionResponse with posts
+ *   { kind: 'empty', data }                       a successful collection with zero posts
+ *   { kind: 'error', term, error, lastGood? }     error: an ErrorBody
+ *
+ * Action (event):
+ *   submit {term, force} | retry | resolved {data} | failed {error, lastGood?} | restored {data}
+ */
 
 /** The feed the user is looking at now, kept visible (dimmed) while the next one loads. */
-export function visibleFeed(view: View): CollectionResponse | undefined {
+export function visibleFeed(view) {
   switch (view.kind) {
     case 'success':
     case 'empty':
@@ -30,16 +27,16 @@ export function visibleFeed(view: View): CollectionResponse | undefined {
   }
 }
 
-function loadingFrom(view: View, term: string, force: boolean): View {
+function loadingFrom(view, term, force) {
   const previous = visibleFeed(view);
   return { kind: 'loading', term, force, ...(previous && { previous }) };
 }
 
-function resultView(data: CollectionResponse): View {
+function resultView(data) {
   return data.posts.length > 0 ? { kind: 'success', data } : { kind: 'empty', data };
 }
 
-export function collectionReducer(view: View, action: Action): View {
+export function collectionReducer(view, action) {
   switch (action.type) {
     case 'submit':
       return view.kind === 'loading' ? view : loadingFrom(view, action.term, action.force);

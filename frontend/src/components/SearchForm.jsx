@@ -1,26 +1,22 @@
-import { type FormEvent, useId, useState } from 'react';
-
-interface Props {
-  onSubmit: (term: string) => void;
-  loading: boolean;
-  /** Present only when there is a result to refresh. */
-  onRefresh?: () => void;
-  initialTerm?: string;
-}
-
-export function SearchForm({ onSubmit, loading, onRefresh, initialTerm = '' }: Props) {
+import { useId, useState } from 'react';
+/**
+ * @param {object} props
+ * @param {(term: string) => void} props.onSubmit
+ * @param {boolean} props.loading
+ * @param {() => void} [props.onRefresh]  present only when there is a result to refresh
+ * @param {string} [props.initialTerm]
+ */
+export function SearchForm({ onSubmit, loading, onRefresh, initialTerm = '' }) {
   const [term, setTerm] = useState(initialTerm);
   const [blank, setBlank] = useState(false);
   const inputId = useId();
   const hintId = useId();
-
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
     const trimmed = term.trim();
     setBlank(trimmed === '');
     if (trimmed !== '') onSubmit(trimmed);
   };
-
   return (
     <form className="search" onSubmit={handleSubmit} noValidate>
       <label htmlFor={inputId}>Subreddit</label>

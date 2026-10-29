@@ -1,6 +1,4 @@
-import type { Post } from '@reddit-collector/contracts';
-
-export function makePost(id: string, overrides: Partial<Post> = {}): Post {
+export function makePost(id, overrides = {}) {
   return {
     id,
     title: `Post ${id}`,

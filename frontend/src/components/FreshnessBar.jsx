@@ -1,14 +1,5 @@
-import type { CollectionSummary, CollectorMode } from '@reddit-collector/contracts';
 import { relativeTime } from '../lib/format';
-
-interface Props {
-  collection: CollectionSummary;
-  now: Date;
-  staleAfterSeconds: number;
-  collectorMode: CollectorMode;
-}
-
-export function FreshnessBar({ collection, now, staleAfterSeconds, collectorMode }: Props) {
+export function FreshnessBar({ collection, now, staleAfterSeconds, collectorMode }) {
   const ageSeconds = (now.getTime() - new Date(collection.collectedAt).getTime()) / 1000;
   const badge =
     collectorMode === 'fixture'
@@ -16,7 +7,6 @@ export function FreshnessBar({ collection, now, staleAfterSeconds, collectorMode
       : collection.source === 'live'
         ? { label: 'Live', className: 'badge live' }
         : { label: 'Cached', className: 'badge cached' };
-
   return (
     <div className="freshness">
       <span className={badge.className}>{badge.label}</span>

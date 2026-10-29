@@ -1,31 +1,18 @@
-import type { CollectionResponse } from '@reddit-collector/contracts';
 import { useCallback, useEffect, useReducer, useRef } from 'react';
-import {
-  ApiError,
-  collect as collectFromApi,
-  NETWORK_ERROR,
-  type RequestOptions,
-} from '../api/client';
-import { collectionReducer, type View } from './collectionReducer';
+import { ApiError, collect as collectFromApi, NETWORK_ERROR } from '../api/client';
+import { collectionReducer } from './collectionReducer';
+const INITIAL = { kind: 'idle' };
 
-export interface CollectionApi {
-  collect(term: string, force: boolean, options: RequestOptions): Promise<CollectionResponse>;
-}
-
-const INITIAL: View = { kind: 'idle' };
-
-export function useCollection(api: CollectionApi = { collect: collectFromApi }) {
+export function useCollection(api = { collect: collectFromApi }) {
   const [view, dispatch] = useReducer(collectionReducer, INITIAL);
   const viewRef = useRef(view);
   viewRef.current = view;
   // A ref, not state: two clicks in the same frame must not both see "not busy".
   const busy = useRef(false);
-  const controller = useRef<AbortController | null>(null);
-
+  const controller = useRef(null);
   useEffect(() => () => controller.current?.abort(), []);
-
   const run = useCallback(
-    async (term: string, force: boolean) => {
+    async (term, force) => {
       busy.current = true;
       controller.current = new AbortController();
       try {
@@ -48,26 +35,22 @@ export function useCollection(api: CollectionApi = { collect: collectFromApi }) 
     },
     [api],
   );
-
   const submit = useCallback(
-    (term: string, force: boolean) => {
+    (term, force) => {
       if (busy.current) return;
       dispatch({ type: 'submit', term, force });
       void run(term, force);
     },
     [run],
   );
-
   const retry = useCallback(() => {
     const current = viewRef.current;
     if (busy.current || current.kind !== 'error' || !current.error.retryable) return;
     dispatch({ type: 'retry' });
     void run(current.term, false);
   }, [run]);
-
-  const restore = useCallback((data: CollectionResponse) => {
+  const restore = useCallback((data) => {
     dispatch({ type: 'restored', data });
   }, []);
-
   return { view, submit, retry, restore };
 }

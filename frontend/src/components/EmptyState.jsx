@@ -1,4 +1,4 @@
-export function EmptyState({ term }: { term: string }) {
+export function EmptyState({ term }) {
   return (
     <div className="empty">
       <p className="empty-title">No posts found in r/{term}.</p>

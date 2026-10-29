@@ -4,10 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
 import { LAST_TERM_KEY } from './lib/lastTerm';
 import { makePost } from './test/makePost';
-
-type Handler = (url: string, init?: RequestInit) => Response | Promise<Response>;
-
-const json = (status: number, body: unknown) =>
+const json = (status, body) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 const health = (collectorMode = 'live') =>
@@ -24,8 +21,8 @@ const feed = (posts = [makePost('t3_a', { title: 'First post' })], source = 'liv
   posts,
 });
 
-function serve(handlers: { collect?: Handler; posts?: Handler; health?: Handler }) {
-  const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+function serve(handlers) {
+  const fetchMock = vi.fn(async (url, init) => {
     if (url === '/api/health') return (handlers.health ?? (() => health()))(url, init);
     if (url.startsWith('/api/posts'))
       return (handlers.posts ?? (() => json(200, { collection: null, posts: [] })))(url, init);
@@ -36,22 +33,19 @@ function serve(handlers: { collect?: Handler; posts?: Handler; health?: Handler 
   return fetchMock;
 }
 
-async function search(term: string) {
+async function search(term) {
   await userEvent.type(screen.getByLabelText('Subreddit'), `${term}{Enter}`);
 }
-
 beforeEach(() => localStorage.clear());
 afterEach(() => vi.unstubAllGlobals());
-
 describe('App', () => {
   it('starts idle with an example', () => {
     serve({});
     render(<App />);
     expect(screen.getByText(/try a subreddit like/i)).toBeInTheDocument();
   });
-
   it('shows loading, then a feed of cards', async () => {
-    let finish!: () => void;
+    let finish;
     serve({
       collect: () =>
         new Promise((resolve) => {
@@ -59,24 +53,18 @@ describe('App', () => {
         }),
     });
     render(<App />);
-
     await search('ubisoft');
     expect(await screen.findByRole('status')).toHaveTextContent('Collecting posts from r/ubisoft');
-
     finish();
     expect(await screen.findByRole('heading', { name: 'First post' })).toBeInTheDocument();
     expect(screen.getByText('Live')).toBeInTheDocument();
   });
-
   it('shows the empty state when there are no posts', async () => {
     serve({ collect: () => json(200, feed([])) });
     render(<App />);
-
     await search('quiet');
-
     expect(await screen.findByText(/no posts found in r\/ubisoft/i)).toBeInTheDocument();
   });
-
   it('shows an error next to the last good feed', async () => {
     serve({
       collect: () =>
@@ -90,47 +78,36 @@ describe('App', () => {
         }),
     });
     render(<App />);
-
     await search('ubisoft');
-
     expect(await screen.findByRole('alert')).toHaveTextContent('Reddit took too long to respond.');
     expect(screen.getByRole('heading', { name: 'First post' })).toBeInTheDocument();
   });
-
   it('explains when the backend cannot be reached', async () => {
     serve({});
     render(<App />);
-
     await search('ubisoft');
-
     expect(await screen.findByRole('alert')).toHaveTextContent('Cannot reach the local server');
   });
-
   it('refreshes the shown subreddit with force', async () => {
     const fetchMock = serve({ collect: () => json(200, feed()) });
     render(<App />);
     await search('ubisoft');
     await screen.findByRole('heading', { name: 'First post' });
-
     await userEvent.click(screen.getByRole('button', { name: 'Refresh' }));
-
     const bodies = fetchMock.mock.calls
       .filter(([url]) => url === '/api/collections')
       .map(([, init]) => JSON.parse(String(init?.body)));
     expect(bodies.at(-1)).toEqual({ term: 'ubisoft', force: true });
   });
-
   it('labels offline sample data in fixture mode', async () => {
     serve({ health: () => health('fixture') });
     render(<App />);
     expect(await screen.findByText(/offline mode/i)).toBeInTheDocument();
   });
-
   it('restores the last searched subreddit from the database on reload', async () => {
     localStorage.setItem(LAST_TERM_KEY, 'ubisoft');
     const fetchMock = serve({ posts: () => json(200, feed(undefined, 'cache')) });
     render(<App />);
-
     const list = await screen.findByRole('list', { name: 'Posts' });
     expect(within(list).getByRole('heading', { name: 'First post' })).toBeInTheDocument();
     expect(screen.getByText('Cached')).toBeInTheDocument();

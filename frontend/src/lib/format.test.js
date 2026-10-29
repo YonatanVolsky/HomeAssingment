@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { formatCount, isSafeRedditUrl, relativeTime } from './format';
-
 const now = new Date('2026-10-29T12:00:00.000Z');
-const ago = (seconds: number) => new Date(now.getTime() - seconds * 1000).toISOString();
 
+const ago = (seconds) => new Date(now.getTime() - seconds * 1000).toISOString();
 describe('relativeTime', () => {
   it.each([
     [0, 'just now'],
@@ -16,16 +15,13 @@ describe('relativeTime', () => {
   ])('describes %i seconds ago as %j', (seconds, expected) => {
     expect(relativeTime(ago(seconds), now)).toBe(expected);
   });
-
   it('shows a date after 30 days', () => {
     expect(relativeTime('2026-08-01T10:00:00.000Z', now)).toBe('Aug 1, 2026');
   });
-
   it('treats a time slightly in the future (clock skew) as just now', () => {
     expect(relativeTime(ago(-30), now)).toBe('just now');
   });
 });
-
 describe('formatCount', () => {
   it.each([
     [0, '0'],
@@ -40,7 +36,6 @@ describe('formatCount', () => {
     expect(formatCount(value)).toBe(expected);
   });
 });
-
 describe('isSafeRedditUrl', () => {
   it.each([
     'https://www.reddit.com/r/ubisoft/comments/abc/',
@@ -49,7 +44,6 @@ describe('isSafeRedditUrl', () => {
   ])('accepts %s', (url) => {
     expect(isSafeRedditUrl(url)).toBe(true);
   });
-
   it.each([
     'http://www.reddit.com/r/x/',
     'javascript:alert(1)',
