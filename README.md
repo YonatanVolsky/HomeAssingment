@@ -91,7 +91,7 @@ In fixture mode these subreddit names simulate each outcome:
 ## Tests and checks
 
 ```bash
-npm test                        # backend + frontend, offline (about 10 s)
+npm test                        # backend + frontend, offline (a few seconds)
 npm run lint
 npm run typecheck
 scripts/smoke.sh                # against a running backend (BASE_URL, SMOKE_TERM to override)
