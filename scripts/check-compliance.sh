@@ -12,16 +12,17 @@ FORBIDDEN_URLS='reddit\.com/dev/api|reddit\.com/r/[^ "'"'"']*\.json'
 # Reddit hosts the code may mention. Each entry needs a reason; the mobile app's hosts are
 # added with a pointer to docs/reddit-mobile-request.md once the capture is done.
 ALLOWED_HOSTS=(
-  "reddit.com"     # permalink host check in collector/mappers.ts
+  "reddit.com"     # permalink host check in app/collector/mappers.py
   "www.reddit.com" # base for relative permalinks (links shown to the user, not requested)
 )
 
 source_files() {
-  for dir in backend/src frontend/src packages scripts; do
-    [[ -d $dir ]] && find "$dir" -type f ! -path '*/node_modules/*' ! -name '*.md' \
-      ! -name 'check-compliance.sh'
+  for dir in backend/app frontend/src scripts; do
+    [[ -d $dir ]] && find "$dir" -type f ! -path '*/node_modules/*' ! -path '*/__pycache__/*' \
+      ! -name '*.md' ! -name 'check-compliance.sh'
   done
-  find . -name package.json ! -path '*/node_modules/*' -type f | sed 's#^\./##'
+  find . \( -name package.json -o -name 'requirements*.txt' \) -type f \
+    ! -path '*/node_modules/*' ! -path '*/.venv/*' | sed 's#^\./##'
 }
 
 failed=0
@@ -49,7 +50,7 @@ if [[ -f package-lock.json ]]; then
   done < <(grep -nEi "\"node_modules/(@[^/\"]+/)?($FORBIDDEN_WORDS)\"" package-lock.json)
 fi
 
-if [[ -d backend/src ]]; then
+if [[ -d backend/app ]]; then
   while IFS= read -r host; do
     host="${host#.}"
     allowed=0
@@ -58,7 +59,7 @@ if [[ -d backend/src ]]; then
       echo "check-compliance: Reddit host '$host' is not on the allow-list (see scripts/check-compliance.sh)"
       failed=1
     fi
-  done < <(grep -rhoEi '[a-z0-9.-]*reddit\.com' backend/src | tr 'A-Z' 'a-z' | sort -u)
+  done < <(grep -rhoEi --include='*.py' '[a-z0-9.-]*reddit\.com' backend/app | tr 'A-Z' 'a-z' | sort -u)
 fi
 
 if [[ $failed -ne 0 ]]; then
