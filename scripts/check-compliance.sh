@@ -12,8 +12,9 @@ FORBIDDEN_URLS='reddit\.com/dev/api|reddit\.com/r/[^ "'"'"']*\.json'
 # Reddit hosts the code may mention. Each entry needs a reason; the mobile app's hosts are
 # added with a pointer to docs/reddit-mobile-request.md once the capture is done.
 ALLOWED_HOSTS=(
-  "reddit.com"     # permalink host check in app/collector/mappers.py
-  "www.reddit.com" # base for relative permalinks (links shown to the user, not requested)
+  "reddit.com"          # permalink host check in app/collector/mappers.py
+  "www.reddit.com"      # base for relative permalinks + anonymous token (docs/reddit-mobile-request.md)
+  "gql-fed.reddit.com"  # mobile app GraphQL feed endpoint (docs/reddit-mobile-request.md)
 )
 
 source_files() {
