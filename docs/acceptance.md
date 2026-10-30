@@ -42,3 +42,13 @@ for the React build. Same checklist, same results as run 1: `npm test` passes (b
 233, frontend Vitest 88), `scripts/smoke.sh` 6/6 against `python -m app`, `npm run dev`
 (proxy) and `npm run build && npm start` (single process) both serve the UI and the API,
 compliance and secret checks OK. The "still to do" list above is unchanged.
+
+## Run 3: 2026-10-30, live Reddit
+
+Live collection verified: `pytest -m live` fetched 10 newest posts of r/ubisoft (newest
+2026-10-30T05:20:15Z). The scraper uses `curl_cffi` with an Android-client transport
+fingerprint, because Reddit's edge 403s a default client (see docs/reddit-mobile-request.md).
+Full suite: backend 257 passed + 1 live, frontend 88. Compliance and secret checks OK.
+
+Still to do: look at the UI in a browser (375 px, keyboard, dark mode), a live end-to-end run
+through the server and smoke script, and a clean-machine README dry run.

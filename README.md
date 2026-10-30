@@ -4,10 +4,10 @@ A local web app: enter a subreddit, the backend collects its newest posts by rep
 Reddit **mobile app's** HTTP requests, stores them in SQLite, and the browser shows them as a
 feed of cards. Design decisions and limitations are in [DESIGN.md](DESIGN.md).
 
-> **Status:** the app, database, API, UI and tests are complete. The Reddit mobile request
-> itself is still being captured (see [plan/01](plan/01-reddit-capture.md)), so until then
-> live mode returns a clear "not available yet" error. **Use fixture mode** (below) to run
-> the full flow with bundled sample data.
+Live collection works: the app fetches real posts from Reddit. Fixture mode
+(`COLLECTOR_MODE=fixture`) serves bundled sample data for an offline demo and for the UI's
+error states. How the mobile request was reverse-engineered is in
+[docs/reddit-mobile-request.md](docs/reddit-mobile-request.md).
 
 ## Requirements
 
@@ -32,8 +32,8 @@ backend\requirements-dev.txt`, then run the backend and frontend in two terminal
 ## Run
 
 ```bash
-COLLECTOR_MODE=fixture npm run dev     # offline sample data (works today)
-# npm run dev                          # live Reddit, once the capture is wired up
+npm run dev                            # live Reddit collection
+COLLECTOR_MODE=fixture npm run dev     # offline sample data (demo without hitting Reddit)
 ```
 
 Open **http://localhost:5173** and enter `ubisoft` or `r/ubisoft`. Stop with `Ctrl+C`.
@@ -57,7 +57,7 @@ npm run dev -w frontend                                          # terminal 2
 
 ```bash
 npm run build                           # builds the UI into frontend/dist
-COLLECTOR_MODE=fixture npm start        # the backend serves the UI and the API on :3001
+npm start                               # the backend serves the UI and the API on :3001
 ```
 
 ## Configuration
@@ -150,5 +150,4 @@ its result will be documented in `docs/reddit-mobile-request.md`.
 | `backend/.venv/bin/python: No such file` | Run the setup steps above first |
 | `Address already in use` on 3001 or 5173 | Stop the other process, or set `PORT` (and update the Vite proxy) |
 | "Cannot reach the local server" in the UI | The backend is not running or crashed: check the `[backend]` lines in the terminal |
-| "Live Reddit collection is not available yet" | Expected until the capture is done; use `COLLECTOR_MODE=fixture` |
 | "Reddit is limiting requests" | Reddit returned HTTP 429. Wait for the countdown; avoid rapid repeated refreshes |

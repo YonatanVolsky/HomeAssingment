@@ -83,7 +83,6 @@ developer API.
 
 ## Known limitations
 
-- **Live collection is not finished** (see below).
 - Subreddit names only: no free-text search, no partial-name matching.
 - One page of newest posts (up to `MAX_POSTS`); no pagination or other sort orders.
 - Counts are as of the last collection; no background refresh.
@@ -93,17 +92,22 @@ developer API.
 - No authentication or rate limiting on our own API (local tool).
 - `npm run dev` uses macOS/Linux paths for the Python virtual environment; Windows users run
   the two parts in separate terminals.
-- Depends on an old app version's unofficial endpoints, which Reddit can change or block.
+- Depends on an old app version's unofficial endpoints, which Reddit can change or block, and
+  on the `chrome_android` transport fingerprint remaining accepted by Reddit's edge.
+
+## How live collection works (and the fingerprint)
+
+The app's requests are reverse-engineered in `docs/reddit-mobile-request.md`. One wrinkle:
+replaying them from a default Python HTTP client returns 403 from Reddit's edge, which
+fingerprints the TLS/HTTP-2 handshake to tell a real app from a script. The default transport
+(`CurlCffiTransport`) therefore uses `curl_cffi` with an Android-client profile, so our
+connection looks like the app's at the transport layer. It is still a direct HTTP request we
+build ourselves — no browser, no automation — which keeps it within Appendix A's rules.
 
 ## What is not finished
 
-- **The Reddit mobile request.** The capture (emulator, old APK, HTTP Toolkit) has not been
-  done yet, so `backend/app/collector/reddit/mobile_api.py` is a placeholder that reports
-  "not available yet". Everything around it (token caching, retries, deadline, error
-  classification, mapping and validation helpers, storage, API, UI) is built and tested.
-  Remaining: the request builders, the response schema and parser from real responses, raw
-  fixtures, and the live test.
-- A browser check of the UI (375 px, keyboard only, dark mode) and a clean-machine dry run.
+- A browser check of the UI (375 px, keyboard only, dark mode) and a clean-machine dry run from
+  the README.
 
 ## With more time
 
