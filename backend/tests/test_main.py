@@ -89,10 +89,10 @@ def test_relative_db_paths_resolve_from_the_repo_root(tmp_path, monkeypatch):
             Path(f'{created}{suffix}').unlink(missing_ok=True)
 
 
-def test_live_mode_warns_at_startup_that_collection_is_not_available(tmp_path, capsys):
+def test_live_mode_starts_without_the_not_available_warning(tmp_path, capsys):
     _, close = create_app_from_env({'DB_PATH': str(tmp_path / 'live.db')})
     close()
-    assert 'COLLECTOR_MODE=fixture' in capsys.readouterr().err
+    assert 'not available yet' not in capsys.readouterr().err
 
 
 def free_port():

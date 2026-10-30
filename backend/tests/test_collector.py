@@ -352,8 +352,10 @@ def test_factory_picks_the_fixture_collector_only_in_fixture_mode():
     assert isinstance(create_collector(load_config({}), **deps), RedditCollector)
 
 
-async def test_live_mode_explains_it_is_not_available_yet_without_offering_retry():
+def test_live_mode_wires_the_real_reddit_collector():
+    from app.collector.reddit.mobile_api import MobileListingSource
+
     collector = create_collector(load_config({}), clock=FakeClock(), logger=make_logger())
-    error = await expect_code(collector.collect('ubisoft', 25), 'UPSTREAM_ERROR')
-    assert 'not available yet' in error.message
-    assert error.retryable is False
+    assert isinstance(collector, RedditCollector)
+    # Built with the real mobile listing source; no network happens at construction.
+    assert isinstance(collector._source, MobileListingSource)
