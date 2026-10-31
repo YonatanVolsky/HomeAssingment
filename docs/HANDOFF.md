@@ -1,22 +1,57 @@
-# Handoff: continue on another computer
+# Handoff: continuing the project
 
-Written 2026-10-29 at the end of the first working session. A new Claude Code session should
-read this file first; it replaces the conversation history, which stays on the old machine.
+Updated 2026-10-31. A new Claude Code session should read this file first; it replaces the
+conversation history, which does not carry over between sessions.
 
 ## Where things stand
 
 - **Work branch: `feat/python`** (contains everything; built on `feat/app`). Nothing is merged
-  into `main` beyond the plan, on purpose: the merge waits for the live Reddit part.
-- **Done and tested:** Python backend (FastAPI, sqlite3, httpx; 233 pytest tests), React JSX
-  frontend (88 Vitest tests), scripts (smoke, compliance, secrets, db-inspect), README,
-  DESIGN.md, docs/acceptance.md. The full flow works in fixture mode
-  (`COLLECTOR_MODE=fixture npm run dev`).
-- **Not done:** the Reddit mobile request. `backend/app/collector/reddit/mobile_api.py` is a
-  placeholder that answers "Live Reddit collection is not available yet". Everything around
-  it (token cache, retries, deadline, error mapping, storage, API, UI) is built.
+  into `main` beyond the plan yet — the merge is a pending step (see "Open to-do", below).
+- **The required app is built, tested, and live collection works.** You can enter a subreddit
+  and the backend fetches its real newest posts from Reddit, stores them in SQLite, and the UI
+  shows them as cards. Verified live on 2026-10-30 (`docs/acceptance.md`, Run 3).
+- **Live collection is the real thing now**, not a placeholder:
+  `backend/app/collector/reddit/mobile_api.py` builds and sends the actual token and GraphQL
+  listing requests, and `LIVE_COLLECTION_AVAILABLE = True`.
+- **Tested:** Python backend (FastAPI, sqlite3, httpx + curl_cffi; 260 pytest cases plus one
+  opt-in `live`), React JSX frontend (88 Vitest cases). All green on 2026-10-31, as are lint,
+  the compliance and secret checks, `npm run test:live` and `scripts/smoke.sh` against a live
+  backend (25 real r/ubisoft posts).
+- **Fixed 2026-10-31: missing or banned subreddits.** Reddit answers these with HTTP 200, not
+  404: `postFeed: null` for a name that does not exist, `__typename: "UnavailableSubreddit"`
+  for a banned (and presumably private) one. The parser used to report both as "Reddit
+  returned an unexpected response" with a retry button; it now raises `NOT_FOUND_SUBREDDIT`
+  ("not found or is not public", no retry). Quarantined subreddits return a normal empty feed
+  and show the empty state. Details in `docs/reddit-mobile-request.md`, "Errors and limits".
 - `feat/app` is the earlier TypeScript version, kept for history only.
 
-## Set up the new computer
+## The one thing that made live collection work (the fingerprint)
+
+Replaying the app's requests from a default Python HTTP client returns **HTTP 403** from
+Reddit's edge *before the token is even checked* — the edge fingerprints the TLS/HTTP-2
+handshake to tell a real app from a script. The fix: the default transport
+(`CurlCffiTransport` in `mobile_api.py`) uses **`curl_cffi`** with the `chrome_android`
+profile, so our connection presents a real Android-client fingerprint. It is still a direct
+HTTP request we build ourselves — no browser, no automation. Full write-up:
+`docs/reddit-mobile-request.md`, section "Transport fingerprint (resolved)".
+
+## The capture is a build-time artifact, not a runtime dependency
+
+The Reddit traffic capture was the one-time reverse-engineering step. Everything learned from
+it now lives in the committed code, so running on any machine needs **no capture, emulator, or
+proxy** — only Python, Node, and internet:
+
+- The request details (token endpoint, GraphQL operation, persisted-query hash, public client
+  id, user agent) are hardcoded constants in `mobile_api.py`.
+- A scrubbed real response lives in `backend/tests/fixtures/listing-new-ok.json` and drives the
+  offline parser tests.
+- The raw recording (`captures/reddit.har`) is **git-ignored** — it holds anonymous session
+  tokens and is never committed or needed to run.
+
+Only if Reddit changes its persisted-query hash or blocks the fingerprint would a fresh capture
+be needed, to update those constants. See "Re-capturing" in README.md.
+
+## Set up on a new computer
 
 ```bash
 git clone https://github.com/YonatanVolsky/HomeAssingment.git
@@ -24,59 +59,41 @@ cd HomeAssingment
 git checkout feat/python
 ```
 
-Then follow README.md "Setup (once)": Python 3.11+ and Node 22+ are needed. Check it works:
+Then follow README.md "Setup (once)": Python 3.11+ and Node 22+. Check it works:
 
 ```bash
-npm test                               # expect: backend 233 passed, frontend 88 passed
-COLLECTOR_MODE=fixture npm run dev     # open http://localhost:5173, search "ubisoft"
+npm test                               # offline; expect all backend + frontend tests green
+COLLECTOR_MODE=fixture npm run dev     # offline demo: open http://localhost:5173, search "ubisoft"
+npm run dev                            # live: fetches real Reddit posts
 ```
 
 On Windows, use the Windows commands in README.md and run backend and frontend in two
-terminals. Free disk space: the emulator needs about 15-20 GB.
+terminals.
 
-## Next step: the Reddit capture (needs a person)
+## Open to-do (the project's remaining steps)
 
-Goal: record the HTTP traffic of the Reddit Android app while it shows r/ubisoft sorted by
-New, so the scraper can replay those requests. Full background: `plan/01-reddit-capture.md`.
+Nothing is required for the app to work; these finish and package it.
 
-1. **Emulator.** In Android Studio: Device Manager → create a device → system image
-   **Android 13 (API 33), "Google APIs"** (not "Google Play", which cannot be rooted). Pick
-   arm64 on Apple Silicon, x86_64 on Intel/AMD. On Windows, MEmu (the brief's suggestion)
-   also works. Start it, then run `adb root` (adb is in Android Studio's `platform-tools`).
-2. **Reddit app.** Download a Reddit APK **older than 2024.44** for the emulator's
-   architecture (for example from APKMirror) and install it: `adb install reddit.apk`.
-   Note the exact version.
-3. **Proxy.** Install HTTP Toolkit → "Android device via ADB". It installs its certificate
-   on the rooted emulator and starts intercepting.
-4. **Record.** In the app, logged out: open r/ubisoft, sort by **New**, scroll twice. Then
-   search for something inside r/ubisoft once. Also open a subreddit that does not exist.
-5. **Export.** In HTTP Toolkit, export everything as a **HAR file** into the repo's
-   `captures/` folder (git ignores it; it contains tokens and must never be committed).
-6. **If the app shows network errors while intercepting**, it is probably certificate
-   pinning: stop and ask Claude to walk through HTTP Toolkit's Frida option.
+1. **Browser check of the UI** — 375 px width, keyboard-only, dark mode (noted unfinished in
+   DESIGN.md).
+2. **Clean-machine dry run** from the README, to confirm a fresh clone runs with no hidden
+   steps.
+3. **Fix stale wording**: README.md still says `test:live` runs "after the capture" and that
+   the capture result "will be documented"; `docs/acceptance.md` has no live end-to-end row
+   yet.
+4. **Merge `feat/python` into `main`** once the above pass. Until then a reviewer cloning the
+   default branch gets only the plan, not the app.
+5. **Push to GitHub** (needs the owner's login; a Claude session cannot do this).
+6. Optional: `docs/interview-notes.md`, tag `v1.0-submission`, zip (plan/07); optionally delete
+   the local raw `captures/reddit.har`.
 
-## Prompt to start the new Claude session
+## Things only a person can run
 
-> Read docs/HANDOFF.md, WORKPLAN.md and plan/01-reddit-capture.md. We are on branch
-> feat/python. The capture HAR is in captures/. Continue: find the token and listing
-> requests, replay them with curl and Python, document them in
-> docs/reddit-mobile-request.md, and implement the real request and parser in
-> backend/app/collector/reddit/mobile_api.py test-first, as the plan says.
-
-## What the next session does after the capture
-
-1. Identify the anonymous token request and the subreddit listing request in the HAR; replay
-   both with curl, then with Python httpx (if Python is blocked but curl works, try
-   `curl_cffi`); find the minimal headers by removing them one at a time.
-2. Write `docs/reddit-mobile-request.md` (template in plan/01) and `scripts/scrub-fixture.py`
-   (removes tokens, cookies, device ids) to save real responses as test fixtures.
-3. Implement, test-first: the token fetcher and the listing source in `mobile_api.py`, a
-   pydantic schema for the raw response, `parse_listing` using the helpers in
-   `app/collector/mappers.py`. Set `LIVE_COLLECTION_AVAILABLE = True`.
-4. Add the app's Reddit hosts to the allow-list in `scripts/check-compliance.sh`.
-5. Add one test marked `live` (`npm run test:live`), run the acceptance checklist against
-   live Reddit (docs/acceptance.md), look at the UI in a browser, merge `feat/python` into
-   `main`, write `docs/interview-notes.md`, then tag `v1.0-submission` and zip it (plan/07).
+- **Live Reddit replay** (`cd backend && .venv/bin/pytest -m live -s`, or `npm run test:live`):
+  Claude Code's safety classifier has blocked sessions from firing live Reddit requests, so
+  the owner may need to run this in their own terminal (on 2026-10-31 a session was allowed
+  to). Last run: 2026-10-31, passed.
+- **`git push`**: needs the owner's GitHub credentials.
 
 ## Working conventions used so far
 
@@ -92,13 +109,14 @@ New, so the scraper can replay those requests. Full background: `plan/01-reddit-
 - Backend rewritten from TypeScript to Python, frontend converted to plain JSX, at the
   owner's request; `LOG_LEVEL` uses Python's names (critical, error, warning, info, debug).
 - The plan's single Reddit client is split: `RedditCollector` (deadline, retries, one token
-  refresh) and `ListingSource` (request and parsing, written after the capture).
-- Live mode stays the default even before the capture; it warns at startup and its error
-  offers no retry. Fixture mode uses its own database file.
-- Fixture mode serves invented sample posts (`backend/fixtures/sample-posts.json`); switch to
-  scrubbed real responses after the capture.
+  refresh) and `ListingSource` (`mobile_api.py`, the request and parsing).
+- The default transport uses `curl_cffi` with the `chrome_android` fingerprint to pass Reddit's
+  edge (see above); the transport is injected so all other tests run offline.
+- Live mode is the default; fixture mode (`COLLECTOR_MODE=fixture`) uses its own database file
+  and now could serve the scrubbed real response, though it still ships invented sample posts
+  in `backend/fixtures/sample-posts.json` for the UI's error-state names.
 - `AppError` can switch off the error table's auto-retry or UI retry for one error (used for
-  unexpected 4xx responses and the placeholder).
+  unexpected 4xx responses).
 - The retry after a rejected token is handled inside the collector, not by the error table.
 - Port 0 is allowed (tests ask the OS for a free port); the smoke script uses `SMOKE_TERM`
   because `TERM` is the shell's terminal type; screen-reader counts use visually hidden text.
@@ -114,11 +132,12 @@ New, so the scraper can replay those requests. Full background: `plan/01-reddit-
   disabled, so low impact).
 - The 1 KB request limit can reject a 200-character term in a non-Latin script with the
   generic message.
-- `scripts/check-secrets.sh` skips `docs/`; stop skipping it once
-  `docs/reddit-mobile-request.md` exists, so a pasted token there is caught.
+- `scripts/check-secrets.sh` skips `docs/`; now that `docs/reddit-mobile-request.md` exists and
+  documents (scrubbed) request details, consider stopping the skip so a pasted token there is
+  caught.
 
-## Time used
+## What the owner said is next
 
-Not measured precisely. By the plan's budgets, what remains is the capture (120 minutes) plus
-the live integration, final docs and packaging (about 60 minutes); the brief's limit is 8 hours
-in total.
+"Later we will go through it, understand and change/optimize/generalize it and maybe change
+some key decisions." So the next phase is a review/refactor pass, not new features — read the
+code with the owner, question decisions, and improve or generalize from there.
