@@ -122,3 +122,52 @@ def test_a_chain_exception_is_an_internal_reply_not_a_crash():
     with running(Echo(error=RuntimeError('boom'))) as server:
         assert error_code(exchange(server.address, b'a\n')) == 'INTERNAL'
         assert error_code(exchange(server.address, b'b\n')) == 'INTERNAL'
+
+
+def trickle(address, first, byte_every, seconds):
+    """Sends `first`, then one byte every `byte_every` seconds, until the server hangs up."""
+    with socket.create_connection(address, timeout=5) as client:
+        client.sendall(first)
+        deadline = time.monotonic() + seconds
+        try:
+            while time.monotonic() < deadline:
+                time.sleep(byte_every)
+                client.sendall(b'x')
+        except OSError:
+            pass  # the server closed the connection, as it should
+
+
+def answered_within(address, request, seconds):
+    started = time.monotonic()
+    reply = exchange(address, request)
+    return reply, time.monotonic() - started < seconds
+
+
+def test_a_trickling_client_is_cut_off_after_the_whole_line_timeout():
+    with running(Echo(), threads=1, read_timeout_seconds=0.5) as server:
+        slow = threading.Thread(target=trickle, args=(server.address, b'{', 0.1, 3))
+        slow.start()
+        time.sleep(0.1)
+        reply, quick = answered_within(server.address, b'next\n', 1.5)
+        slow.join(5)
+    assert reply == b'ok:next\n'
+    assert quick
+
+
+def test_a_client_trickling_after_an_oversize_line_does_not_hold_the_worker():
+    with running(Echo(), threads=1) as server:
+        slow = threading.Thread(target=trickle, args=(server.address, b'x' * 5000, 0.1, 3))
+        slow.start()
+        time.sleep(0.2)
+        reply, quick = answered_within(server.address, b'next\n', 1.5)
+        slow.join(5)
+    assert reply == b'ok:next\n'
+    assert quick
+
+
+def test_shutdown_without_serving_returns_promptly():
+    server = ThreadPoolServer('127.0.0.1', 0, 2, Echo(), make_logger())
+    stopper = threading.Thread(target=server.shutdown, daemon=True)
+    stopper.start()
+    stopper.join(2)
+    assert not stopper.is_alive()

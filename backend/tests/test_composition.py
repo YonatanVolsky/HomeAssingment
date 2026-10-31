@@ -19,3 +19,14 @@ def test_build_inner_refuses_a_route_to_a_missing_handler(tmp_path, monkeypatch)
     config = load_config({'DB_PATH': str(tmp_path / 'x.db'), 'INNER_PORT': '0'})
     with pytest.raises(ConfigError, match='nope'):
         build_inner(config, logger=make_logger())
+
+
+def test_build_inner_then_close_without_serving_returns_promptly(tmp_path):
+    import threading
+
+    config = load_config({'DB_PATH': str(tmp_path / 'x.db'), 'INNER_PORT': '0'})
+    app = build_inner(config, logger=make_logger())
+    closer = threading.Thread(target=app.close, daemon=True)
+    closer.start()
+    closer.join(2)
+    assert not closer.is_alive()
