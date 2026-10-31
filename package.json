@@ -10,8 +10,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev": "concurrently -n backend,inner,frontend -c blue,magenta,green \"npm:dev:backend\" \"npm:dev:inner\" \"npm:dev:frontend\"",
     "dev:backend": "cd backend && .venv/bin/python -m app",
+    "dev:inner": "cd backend && .venv/bin/python -m app.inner",
     "dev:frontend": "npm run dev -w frontend",
     "build": "npm run build -w frontend",
     "start": "cd backend && .venv/bin/python -m app",

@@ -3,7 +3,7 @@ import logging
 
 import pytest
 
-from app.collector.factory import create_collector, create_term_normalizer
+from app.collector.factory import create_collector
 from app.collector.fixture_collector import (
     DEFAULT_SAMPLE_FILE,
     FixtureCollector,
@@ -359,7 +359,3 @@ def test_live_mode_wires_the_real_reddit_collector():
     assert isinstance(collector, RedditCollector)
     # Built with the real mobile listing source; no network happens at construction.
     assert isinstance(collector._source, MobileListingSource)
-
-
-def test_create_term_normalizer_uses_the_configured_preset():
-    assert create_term_normalizer(load_config({})).normalize('r/Ubisoft') == 'ubisoft'

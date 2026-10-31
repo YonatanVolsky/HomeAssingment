@@ -9,10 +9,17 @@ from pydantic import (
     ConfigDict,
     Field,
     ValidationError,
+    ValidationInfo,
     field_validator,
     model_validator,
 )
 
+from app.inner.presets import (
+    DEFAULT_INNER_ROUTES,
+    DEFAULT_SERVER,
+    INNER_ROUTE_PRESETS,
+    SERVER_PRESETS,
+)
 from app.terms.presets import DEFAULT_PRESET, PRESETS
 
 CollectorMode = Literal['live', 'fixture']
@@ -36,6 +43,19 @@ class Config:
     collection_deadline_ms: int
     log_level: LogLevel
     term_protocol: str
+    inner_host: str
+    inner_port: int
+    server: str
+    server_threads: int
+    inner_routes: str
+
+
+# Settings whose value must name a preset defined in code.
+_PRESET_CHOICES = {
+    'TERM_PROTOCOL': PRESETS,
+    'SERVER': SERVER_PRESETS,
+    'INNER_ROUTES': INNER_ROUTE_PRESETS,
+}
 
 
 class _Env(BaseModel):
@@ -52,12 +72,18 @@ class _Env(BaseModel):
     COLLECTION_DEADLINE_MS: Annotated[int, Field(ge=5000, le=60000)] = 25000
     LOG_LEVEL: LogLevel = 'info'
     TERM_PROTOCOL: str = DEFAULT_PRESET
+    INNER_HOST: Annotated[str, Field(min_length=1)] = '127.0.0.1'
+    INNER_PORT: Annotated[int, Field(ge=0, le=65535)] = 3002
+    SERVER: str = DEFAULT_SERVER
+    SERVER_THREADS: Annotated[int, Field(ge=1, le=64)] = 8
+    INNER_ROUTES: str = DEFAULT_INNER_ROUTES
 
-    @field_validator('TERM_PROTOCOL')
+    @field_validator(*_PRESET_CHOICES)
     @classmethod
-    def _known_term_protocol(cls, value: str) -> str:
-        if value not in PRESETS:
-            raise ValueError(f'must be one of: {", ".join(PRESETS)}')
+    def _known_preset(cls, value: str, info: ValidationInfo) -> str:
+        choices = _PRESET_CHOICES[info.field_name]
+        if value not in choices:
+            raise ValueError(f'must be one of: {", ".join(choices)}')
         return value
 
     @model_validator(mode='after')
@@ -92,4 +118,9 @@ def load_config(env: Mapping[str, str]) -> Config:
         collection_deadline_ms=e.COLLECTION_DEADLINE_MS,
         log_level=e.LOG_LEVEL,
         term_protocol=e.TERM_PROTOCOL,
+        inner_host=e.INNER_HOST,
+        inner_port=e.INNER_PORT,
+        server=e.SERVER,
+        server_threads=e.SERVER_THREADS,
+        inner_routes=e.INNER_ROUTES,
     )

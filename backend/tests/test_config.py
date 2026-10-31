@@ -19,6 +19,12 @@ def test_applies_defaults_when_the_environment_is_empty():
     assert config.collection_deadline_ms == 25000
     assert config.log_level == 'info'
     assert config.term_protocol == 'reddit-subreddit'
+    assert (config.inner_host, config.inner_port) == ('127.0.0.1', 3002)
+    assert (config.server, config.server_threads, config.inner_routes) == (
+        'threadpool',
+        8,
+        'collector',
+    )
 
 
 def test_uses_a_separate_database_file_in_fixture_mode():
@@ -52,6 +58,11 @@ def test_accepts_port_zero_which_lets_the_os_pick_a_free_port():
         ({'MAX_POSTS': '0'}, 'MAX_POSTS'),
         ({'LOG_LEVEL': 'loud'}, 'LOG_LEVEL'),
         ({'TERM_PROTOCOL': 'nope'}, 'TERM_PROTOCOL'),
+        ({'INNER_PORT': '70000'}, 'INNER_PORT'),
+        ({'SERVER': 'nope'}, 'SERVER'),
+        ({'SERVER_THREADS': '0'}, 'SERVER_THREADS'),
+        ({'SERVER_THREADS': '65'}, 'SERVER_THREADS'),
+        ({'INNER_ROUTES': 'nope'}, 'INNER_ROUTES'),
         ({'TERM_PROTOCOL': 'Reddit-Subreddit'}, 'TERM_PROTOCOL'),
         ({'REQUEST_TIMEOUT_MS': '20000', 'COLLECTION_DEADLINE_MS': '20000'}, 'REQUEST_TIMEOUT_MS'),
     ],
@@ -67,6 +78,10 @@ def test_accepts_a_known_term_protocol():
 
 def test_an_empty_term_protocol_falls_back_to_the_default():
     assert load_config({'TERM_PROTOCOL': ''}).term_protocol == 'reddit-subreddit'
+
+
+def test_accepts_inner_port_zero():
+    assert load_config({'INNER_PORT': '0'}).inner_port == 0
 
 
 def test_returns_an_immutable_config():
