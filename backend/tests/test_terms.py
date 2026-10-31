@@ -148,6 +148,10 @@ def test_reddit_subreddit_accepts(term, expected):
         'reddit.com',
         'u/someone',
         'ubisöft',
+        # Order guards: accepted if strip_r_prefix ran before extract_reddit_link, or
+        # strip_trailing_slash before trim.
+        'r/reddit.com/r/ubisoft',
+        'ubisoft /',
     ],
 )
 def test_reddit_subreddit_rejects(term):
