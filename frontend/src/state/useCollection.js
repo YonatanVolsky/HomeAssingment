@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
-import { ApiError, collect as collectFromApi, NETWORK_ERROR } from '../api/client';
+import { ApiError, getFeed, NETWORK_ERROR } from '../api/client';
 import { collectionReducer } from './collectionReducer';
 const INITIAL = { kind: 'idle' };
 
-export function useCollection(api = { collect: collectFromApi }) {
+export function useCollection(api = { getFeed }) {
   const [view, dispatch] = useReducer(collectionReducer, INITIAL);
   const viewRef = useRef(view);
   viewRef.current = view;
@@ -16,7 +16,8 @@ export function useCollection(api = { collect: collectFromApi }) {
       busy.current = true;
       controller.current = new AbortController();
       try {
-        const data = await api.collect(term, force, { signal: controller.current.signal });
+        const freshness = force ? 'live' : 'auto';
+        const data = await api.getFeed(term, freshness, { signal: controller.current.signal });
         dispatch({ type: 'resolved', data });
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') return;

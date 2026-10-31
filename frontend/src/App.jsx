@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { DEFAULT_HEALTH, getHealth, getPosts } from './api/client';
+import { DEFAULT_HEALTH, getFeed, getHealth } from './api/client';
 import { EmptyState } from './components/EmptyState';
 import { ErrorBanner } from './components/ErrorBanner';
 import { FreshnessBar } from './components/FreshnessBar';
@@ -19,7 +19,7 @@ export function App() {
     const controller = new AbortController();
     void getHealth({ signal: controller.signal }).then(setHealth);
     if (initialTerm) {
-      getPosts(initialTerm, { signal: controller.signal }).then(restore, () => {
+      getFeed(initialTerm, 'stored', { signal: controller.signal }).then(restore, () => {
         // Restoring is a convenience; the user can still search.
       });
     }

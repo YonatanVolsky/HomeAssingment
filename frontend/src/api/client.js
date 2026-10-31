@@ -10,8 +10,8 @@ export class ApiError extends Error {
   }
 }
 
-/** Above the backend's 25 s collection deadline, so the backend always answers first. */
-export const CLIENT_TIMEOUT_MS = 35_000;
+/** Above the web service's 35 s wait for the collector, so the server always answers first. */
+export const CLIENT_TIMEOUT_MS = 40_000;
 
 export const DEFAULT_HEALTH = {
   status: 'ok',
@@ -26,20 +26,13 @@ export const NETWORK_ERROR = {
   retryable: true,
 };
 
-export function collect(term, force, options = {}) {
-  return request(
-    '/api/collections',
-    {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ term, force }),
-    },
-    options,
-  );
-}
-
-export function getPosts(term, options = {}) {
-  return request(`/api/posts?term=${encodeURIComponent(term)}`, {}, options);
+/**
+ * The feed for a term. `freshness`: 'auto' (stored if recent, else collected live),
+ * 'live' (always collect) or 'stored' (never call Reddit).
+ */
+export function getFeed(term, freshness, options = {}) {
+  const query = `term=${encodeURIComponent(term)}&freshness=${encodeURIComponent(freshness)}`;
+  return request(`/api/posts?${query}`, {}, options);
 }
 
 export async function getHealth(options = {}) {

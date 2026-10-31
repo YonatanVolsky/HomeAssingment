@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ApiError, collect, DEFAULT_HEALTH, getHealth, getPosts } from './client';
+import { ApiError, DEFAULT_HEALTH, getFeed, getHealth } from './client';
 const json = (status, body) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
@@ -23,19 +23,15 @@ async function caught(promise) {
   }
   throw new Error('expected an ApiError');
 }
-describe('collect', () => {
-  it('POSTs the term and force flag as JSON and returns the response', async () => {
+describe('getFeed', () => {
+  it('GETs the term and freshness in the query string and returns the response', async () => {
     const fetchImpl = vi.fn(async () => json(200, okBody));
-    const result = await collect('r/ubisoft', true, { fetchImpl });
+    const result = await getFeed('r/ubi soft?&x', 'live', { fetchImpl });
     expect(result).toEqual(okBody);
-    expect(fetchImpl).toHaveBeenCalledWith(
-      '/api/collections',
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ term: 'r/ubisoft', force: true }),
-      }),
-    );
+    const [url, init] = fetchImpl.mock.calls[0];
+    expect(url).toBe('/api/posts?term=r%2Fubi%20soft%3F%26x&freshness=live');
+    expect(init.method).toBeUndefined();
+    expect(init.body).toBeUndefined();
   });
   it('throws an ApiError carrying the server error and the last good feed', async () => {
     const fetchImpl = async () =>
@@ -47,7 +43,7 @@ describe('collect', () => {
         },
         lastGood: okBody,
       });
-    const error = await caught(collect('ubisoft', false, { fetchImpl }));
+    const error = await caught(getFeed('ubisoft', 'auto', { fetchImpl }));
     expect(error.body).toEqual({
       code: 'UPSTREAM_TIMEOUT',
       message: 'Reddit took too long to respond.',
@@ -59,7 +55,7 @@ describe('collect', () => {
     const fetchImpl = async () => {
       throw new TypeError('Failed to fetch');
     };
-    const error = await caught(collect('ubisoft', false, { fetchImpl }));
+    const error = await caught(getFeed('ubisoft', 'auto', { fetchImpl }));
     expect(error.body).toEqual({
       code: 'NETWORK',
       message: 'Cannot reach the local server. Is the backend running?',
@@ -68,7 +64,7 @@ describe('collect', () => {
   });
   it('reports NETWORK when the dev proxy answers with a non-JSON error page', async () => {
     const fetchImpl = async () => new Response('<html>proxy error</html>', { status: 500 });
-    expect((await caught(collect('ubisoft', false, { fetchImpl }))).body.code).toBe('NETWORK');
+    expect((await caught(getFeed('ubisoft', 'auto', { fetchImpl }))).body.code).toBe('NETWORK');
   });
   it('reports NETWORK when the request takes longer than the client timeout', async () => {
     const fetchImpl = (_url, init) =>
@@ -77,7 +73,7 @@ describe('collect', () => {
           reject(new DOMException('aborted', 'AbortError')),
         );
       });
-    const error = await caught(collect('ubisoft', false, { fetchImpl, timeoutMs: 20 }));
+    const error = await caught(getFeed('ubisoft', 'auto', { fetchImpl, timeoutMs: 20 }));
     expect(error.body.code).toBe('NETWORK');
   });
   it('rethrows an abort requested by the caller as an AbortError', async () => {
@@ -88,16 +84,9 @@ describe('collect', () => {
           reject(new DOMException('aborted', 'AbortError')),
         );
       });
-    const pending = collect('ubisoft', false, { fetchImpl, signal: controller.signal });
+    const pending = getFeed('ubisoft', 'auto', { fetchImpl, signal: controller.signal });
     controller.abort();
     await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
-  });
-});
-describe('getPosts', () => {
-  it('encodes the term in the query string', async () => {
-    const fetchImpl = vi.fn(async () => json(200, { collection: null, posts: [] }));
-    await getPosts('r/ubisoft', { fetchImpl });
-    expect(fetchImpl).toHaveBeenCalledWith('/api/posts?term=r%2Fubisoft', expect.anything());
   });
 });
 describe('getHealth', () => {

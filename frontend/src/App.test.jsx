@@ -26,7 +26,6 @@ function serve(handlers) {
     if (url === '/api/health') return (handlers.health ?? (() => health()))(url, init);
     if (url.startsWith('/api/posts'))
       return (handlers.posts ?? (() => json(200, { collection: null, posts: [] })))(url, init);
-    if (url === '/api/collections' && handlers.collect) return handlers.collect(url, init);
     throw new TypeError('Failed to fetch');
   });
   vi.stubGlobal('fetch', fetchMock);
@@ -47,7 +46,7 @@ describe('App', () => {
   it('shows loading, then a feed of cards', async () => {
     let finish;
     serve({
-      collect: () =>
+      posts: () =>
         new Promise((resolve) => {
           finish = () => resolve(json(200, feed()));
         }),
@@ -60,14 +59,14 @@ describe('App', () => {
     expect(screen.getByText('Live')).toBeInTheDocument();
   });
   it('shows the empty state when there are no posts', async () => {
-    serve({ collect: () => json(200, feed([])) });
+    serve({ posts: () => json(200, feed([])) });
     render(<App />);
     await search('quiet');
     expect(await screen.findByText(/no posts found in r\/ubisoft/i)).toBeInTheDocument();
   });
   it('shows an error next to the last good feed', async () => {
     serve({
-      collect: () =>
+      posts: () =>
         json(504, {
           error: {
             code: 'UPSTREAM_TIMEOUT',
@@ -83,21 +82,26 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'First post' })).toBeInTheDocument();
   });
   it('explains when the backend cannot be reached', async () => {
-    serve({});
+    serve({
+      posts: () => {
+        throw new TypeError('Failed to fetch');
+      },
+    });
     render(<App />);
     await search('ubisoft');
     expect(await screen.findByRole('alert')).toHaveTextContent('Cannot reach the local server');
   });
   it('refreshes the shown subreddit with force', async () => {
-    const fetchMock = serve({ collect: () => json(200, feed()) });
+    const fetchMock = serve({ posts: () => json(200, feed()) });
     render(<App />);
     await search('ubisoft');
     await screen.findByRole('heading', { name: 'First post' });
     await userEvent.click(screen.getByRole('button', { name: 'Refresh' }));
-    const bodies = fetchMock.mock.calls
-      .filter(([url]) => url === '/api/collections')
-      .map(([, init]) => JSON.parse(String(init?.body)));
-    expect(bodies.at(-1)).toEqual({ term: 'ubisoft', force: true });
+    const urls = fetchMock.mock.calls
+      .map(([url]) => url)
+      .filter((url) => url.startsWith('/api/posts'));
+    expect(urls[0]).toBe('/api/posts?term=ubisoft&freshness=auto');
+    expect(urls.at(-1)).toBe('/api/posts?term=ubisoft&freshness=live');
   });
   it('labels offline sample data in fixture mode', async () => {
     serve({ health: () => health('fixture') });
@@ -111,7 +115,10 @@ describe('App', () => {
     const list = await screen.findByRole('list', { name: 'Posts' });
     expect(within(list).getByRole('heading', { name: 'First post' })).toBeInTheDocument();
     expect(screen.getByText('Cached')).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith('/api/posts?term=ubisoft', expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/posts?term=ubisoft&freshness=stored',
+      expect.anything(),
+    );
     expect(screen.getByLabelText('Subreddit')).toHaveValue('ubisoft');
   });
 });
