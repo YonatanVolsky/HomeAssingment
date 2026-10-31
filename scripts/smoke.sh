@@ -26,26 +26,26 @@ json() { python3 -c "import json,sys; b=json.load(open('$WORK/body')); print($1)
 echo "Smoke test against $BASE_URL (term: $SMOKE_TERM)"
 
 status=$(request GET /api/health)
-if [[ $status == 200 && $(json "b['db']") == ok ]]; then ok "health: db ok"; else bad "health (HTTP $status). Is the backend running?"; echo "$failed failed"; exit 1; fi
+if [[ $status == 200 && $(json "b['db']") == ok ]]; then ok "health: db ok"; else bad "health (HTTP $status). Are the web service and the inner server running?"; echo "$failed failed"; exit 1; fi
 mode=$(json "b['collectorMode']")
 echo "  info  collector mode: $mode"
 
-status=$(request POST /api/collections '{"term":""}')
+status=$(request GET "/api/posts?term=")
 [[ $status == 400 && $(json "b['error']['code']") == INVALID_TERM ]] && ok "blank term rejected (400 INVALID_TERM)" || bad "blank term (HTTP $status)"
 
-status=$(request POST /api/collections "{\"term\":\"$SMOKE_TERM\",\"force\":true}")
+status=$(request GET "/api/posts?term=$SMOKE_TERM&freshness=live")
 count=$(json "len(b['posts'])")
 if [[ $status == 200 && ${count:-0} -ge 1 ]]; then ok "live collection returned $count posts"
 elif [[ $status == 200 ]]; then ok "live collection returned 0 posts (warning: empty subreddit?)"
 else bad "live collection (HTTP $status: $(json "b.get('error', {}).get('message')"))"; fi
-[[ $(json "(b.get('collection') or {}).get('source')") == live ]] && ok "forced collection is live" || bad "forced collection source"
-
-status=$(request POST /api/collections "{\"term\":\"$SMOKE_TERM\"}")
-[[ $status == 200 && $(json "b['collection']['source']") == cache ]] && ok "repeat within TTL served from cache" || bad "cache (HTTP $status)"
+[[ $(json "(b.get('collection') or {}).get('source')") == live ]] && ok "freshness=live collects live" || bad "live collection source"
 ids=$(json "','.join(p['id'] for p in b['posts'])")
 
-status=$(request GET "/api/posts?term=$SMOKE_TERM")
-[[ $status == 200 && $(json "','.join(p['id'] for p in b['posts'])") == "$ids" ]] && ok "GET /api/posts returns the same posts" || bad "GET /api/posts (HTTP $status)"
+status=$(request GET "/api/posts?term=$SMOKE_TERM&freshness=auto")
+[[ $status == 200 && $(json "b['collection']['source']") == cache ]] && ok "freshness=auto within TTL served from cache" || bad "cache (HTTP $status)"
+
+status=$(request GET "/api/posts?term=$SMOKE_TERM&freshness=stored")
+[[ $status == 200 && $(json "','.join(p['id'] for p in b['posts'])") == "$ids" ]] && ok "freshness=stored returns the same posts" || bad "stored (HTTP $status)"
 
 echo "$passed passed, $failed failed"
 [[ $failed -eq 0 ]]
