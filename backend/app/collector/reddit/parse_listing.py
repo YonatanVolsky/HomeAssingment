@@ -25,6 +25,7 @@ from app.contracts import Post
 from app.errors import AppError
 
 _POST_TYPE = 'SubredditPost'
+_UNAVAILABLE_TYPE = 'UnavailableSubreddit'
 
 
 def _contract_error(reason: str) -> AppError:
@@ -32,9 +33,19 @@ def _contract_error(reason: str) -> AppError:
 
 
 def _require(body: dict[str, Any]) -> tuple[list[dict[str, Any]], str | None]:
-    """Returns (edges, subreddit name) or raises CONTRACT_ERROR on an unexpected envelope."""
+    """Returns (edges, subreddit name) or raises CONTRACT_ERROR on an unexpected envelope.
+
+    Reddit answers HTTP 200 for a subreddit it cannot show: postFeed is null when the name
+    does not exist, and an UnavailableSubreddit when it is banned or private. Both raise
+    NOT_FOUND_SUBREDDIT. A null feed next to GraphQL errors is still a contract error.
+    """
     data = body.get('data') if isinstance(body, dict) else None
     feed = data.get('postFeed') if isinstance(data, dict) else None
+    no_such_subreddit = isinstance(data, dict) and 'postFeed' in data and feed is None
+    if (no_such_subreddit and 'errors' not in body) or (
+        isinstance(feed, dict) and feed.get('__typename') == _UNAVAILABLE_TYPE
+    ):
+        raise AppError('NOT_FOUND_SUBREDDIT')
     if not isinstance(feed, dict):
         raise _contract_error('missing data.postFeed')
     elements = feed.get('elements')

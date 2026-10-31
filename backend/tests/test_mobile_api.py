@@ -106,3 +106,14 @@ async def test_listing_source_raises_contract_error_on_non_json():
     with pytest.raises(AppError) as raised:
         await source.fetch_new_posts('ubisoft', 25, 't')
     assert raised.value.code == 'CONTRACT_ERROR'
+
+
+async def test_listing_source_reports_a_missing_subreddit_sent_as_http_200():
+    body = json.dumps({'data': {'postFeed': None}, 'extensions': {'traceID': 'x'}})
+    transport = RecordingTransport(HttpResponse(200, {}, body))
+    source = MobileListingSource(CONFIG, transport=transport)
+
+    with pytest.raises(AppError) as raised:
+        await source.fetch_new_posts('zqxvbnmlkjqw', 25, 't')
+    assert raised.value.code == 'NOT_FOUND_SUBREDDIT'
+    assert raised.value.retryable is False

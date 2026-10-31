@@ -128,15 +128,29 @@ def test_zero_posts_is_a_valid_empty_result():
     [
         {},
         {'data': None},
-        {'data': {'postFeed': None}},
         {'data': {'postFeed': {'prefixedName': 'r/x', 'elements': {}}}},
         {'errors': [{'message': 'something'}], 'data': None},
+        {'errors': [{'message': 'something'}], 'data': {'postFeed': None}},
     ],
 )
 def test_a_broken_envelope_raises_contract_error(body):
     with pytest.raises(AppError) as raised:
         parse_listing(body, limit=25)
     assert raised.value.code == 'CONTRACT_ERROR'
+
+
+# Reddit answers HTTP 200 for these, so the body is the only signal (seen live 2026-10-31).
+@pytest.mark.parametrize(
+    'body',
+    [
+        {'data': {'postFeed': None}},  # the subreddit does not exist
+        {'data': {'postFeed': {'__typename': 'UnavailableSubreddit'}}},  # banned or private
+    ],
+)
+def test_a_missing_or_unavailable_subreddit_raises_not_found(body):
+    with pytest.raises(AppError) as raised:
+        parse_listing(body, limit=25)
+    assert raised.value.code == 'NOT_FOUND_SUBREDDIT'
 
 
 def test_all_posts_unmappable_while_some_existed_raises_contract_error():

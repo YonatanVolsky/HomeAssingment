@@ -118,7 +118,9 @@ marks pinned posts; they are kept. Parsing is implemented and tested in
 | HTTP 401/403 on GraphQL with a valid body | Token expired, or the request was blocked (see below) |
 | `x-ratelimit-remaining`, `x-ratelimit-reset` (seconds) | Rate-limit budget; `reset` feeds our `Retry-After` |
 | Observed limits | `x-ratelimit-used: 148`, `remaining: 452`, `reset: 283` (per ~600/10 min window) |
-| Not-found subreddit | Not captured (the app did not fire a feed request for a bad name). Handle as an empty/`NOT_FOUND` result; confirm when live |
+| Subreddit does not exist | HTTP **200** with `{"data":{"postFeed":null}}` (checked live 2026-10-31) → `NOT_FOUND_SUBREDDIT` |
+| Banned or private subreddit | HTTP **200** with `postFeed.__typename == "UnavailableSubreddit"` and no other fields (checked live with a banned one; private assumed to match) → `NOT_FOUND_SUBREDDIT` |
+| Quarantined subreddit | A normal feed with `isQuarantined: true` and zero edges → shown as an empty feed |
 
 ## Transport fingerprint (resolved)
 
