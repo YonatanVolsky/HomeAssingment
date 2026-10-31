@@ -30,6 +30,7 @@ Browser: state machine → cards, empty state or error banner
 | Synchronous request, no job queue | A collection takes seconds; a queue adds polling and state for no user benefit here | A slow Reddit holds the request open (bounded by the 25 s deadline) |
 | The cache is the database | One source of truth that survives restarts; the UI always knows how old data is | Cached counts can be up to a minute old |
 | pydantic at both edges | Bad requests are rejected and unexpected Reddit responses fail loudly instead of storing half-empty posts | Schema must change if Reddit changes its response |
+| Term rules are a chain of steps (a protocol), chosen at startup with `TERM_PROTOCOL` | The normalizer is generic and never changes; a new set of input rules is new steps plus one preset in `app/terms/presets.py`, picked by whoever deploys the app. The service depends only on a `normalize(raw) -> str` interface | Config can only pick presets defined in code, not assemble chains |
 | Fixture mode with its own database file | Demo and development without Reddit; sample data can never mix with real data | Sample data is synthetic |
 
 ### Design principles applied (SOLID)
@@ -84,6 +85,9 @@ developer API.
 ## Known limitations
 
 - Subreddit names only: no free-text search, no partial-name matching.
+- Stored runs are keyed by the normalized term only. Switching `TERM_PROTOCOL` while keeping the
+  same database file can serve a run stored under the old protocol for the same term (from the
+  cache, or as the restored feed). Use a separate `DB_PATH` per protocol.
 - One page of newest posts (up to `MAX_POSTS`); no pagination or other sort orders.
 - Counts are as of the last collection; no background refresh.
 - No retention pruning: the database grows by one run per live collection (posts are

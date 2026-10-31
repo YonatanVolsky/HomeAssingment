@@ -76,6 +76,7 @@ Every variable is optional; `.env.example` lists them all. They are read from th
 | `REQUEST_TIMEOUT_MS` | `8000` | Timeout per HTTP request to Reddit |
 | `COLLECTION_DEADLINE_MS` | `25000` | Hard limit for a whole collection, including retries |
 | `LOG_LEVEL` | `info` | `critical`, `error`, `warning`, `info` or `debug` |
+| `TERM_PROTOCOL` | `reddit-subreddit` | Rules for turning the search term into a subreddit name; only `reddit-subreddit` exists. Use a separate `DB_PATH` per protocol |
 
 No Reddit credentials are needed: the collector requests the same anonymous token the mobile
 app does, at runtime. Nothing secret is stored in the repository.
@@ -126,7 +127,8 @@ sqlite3 data/collector.db "SELECT term, status, post_count, finished_at FROM col
 backend/              Python: FastAPI app, collector, SQLite repository
   app/api.py          HTTP endpoints and error responses
   app/services/       collection service (cache, de-duplication, failure recording)
-  app/collector/      term validation, field mapping, retry/deadline policy, Reddit requests
+  app/terms/          term protocols: normalization steps, presets, the generic normalizer
+  app/collector/      field mapping, retry/deadline policy, Reddit requests
   app/db/             connection, schema, repository (all SQL)
   app/contracts.py    the JSON shapes sent to the browser
   fixtures/           offline sample data

@@ -25,6 +25,14 @@ conversation history, which does not carry over between sessions.
   and show the empty state. Details in `docs/reddit-mobile-request.md`, "Errors and limits".
 - `feat/app` is the earlier TypeScript version, kept for history only.
 
+- **Term protocols (2026-10-31, branch `feat/term-protocols`).** The term is normalized by a
+  chain of steps chosen at startup with `TERM_PROTOCOL` (only `reddit-subreddit`), in
+  `backend/app/terms/`; `normalize_term` is gone. Spec and plan:
+  `docs/superpowers/specs/2026-10-31-term-protocols-design.md`,
+  `docs/superpowers/plans/2026-10-31-term-protocols.md`. **Next:** the command layer (wrap the
+  normalized term in a command type + arguments, map triggers to commands; today only GET),
+  as its own spec.
+
 ## The one thing that made live collection work (the fingerprint)
 
 Replaying the app's requests from a default Python HTTP client returns **HTTP 403** from
