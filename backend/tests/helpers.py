@@ -2,6 +2,8 @@ import logging
 from datetime import UTC, datetime, timedelta
 
 from app.contracts import Post
+from app.terms.normalizer import TermNormalizer
+from app.terms.presets import DEFAULT_PRESET, PRESETS
 
 
 def make_post(post_id: str, **overrides) -> Post:
@@ -36,3 +38,7 @@ class FakeClock:
 
 def make_logger() -> logging.Logger:
     return logging.getLogger('test')
+
+
+def make_normalizer() -> TermNormalizer:
+    return TermNormalizer(PRESETS[DEFAULT_PRESET])

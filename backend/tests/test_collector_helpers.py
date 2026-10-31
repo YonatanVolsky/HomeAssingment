@@ -9,51 +9,7 @@ from app.collector.mappers import (
     to_iso_utc,
     truncate_preview,
 )
-from app.collector.normalize_term import normalize_term
 from app.errors import AppError
-
-# normalize_term
-
-
-@pytest.mark.parametrize(
-    ('term', 'expected'),
-    [
-        ('ubisoft', 'ubisoft'),
-        ('r/Ubisoft', 'ubisoft'),
-        ('/r/Ubisoft/', 'ubisoft'),
-        ('  R/UBISOFT  ', 'ubisoft'),
-        ('https://www.reddit.com/r/ubisoft/', 'ubisoft'),
-        ('https://old.reddit.com/r/Ubisoft/new/?sort=new', 'ubisoft'),
-        ('reddit.com/r/ubisoft', 'ubisoft'),
-        ('de', 'de'),
-        ('Ask_Reddit_2', 'ask_reddit_2'),
-        ('a' * 21, 'a' * 21),
-    ],
-)
-def test_normalize_term_accepts(term, expected):
-    assert normalize_term(term) == expected
-
-
-@pytest.mark.parametrize(
-    'term',
-    [
-        '',
-        '   ',
-        'r/',
-        '/r/',
-        'a',
-        'a' * 22,
-        'bad name!',
-        'ubisoft crash',
-        'r/ubi-soft',
-        'https://example.com/r/ubisoft',
-    ],
-)
-def test_normalize_term_rejects_with_invalid_term(term):
-    with pytest.raises(AppError) as raised:
-        normalize_term(term)
-    assert raised.value.code == 'INVALID_TERM'
-
 
 # mappers
 

@@ -2,11 +2,11 @@ import asyncio
 import logging
 
 from app.clock import Clock
-from app.collector.normalize_term import normalize_term
 from app.collector.types import Collector
 from app.contracts import CollectionResponse, CollectionSource, CollectionSummary
 from app.db.repository import Repository, StoredCollection
 from app.errors import AppError
+from app.terms.normalizer import Normalizer
 
 
 class CollectionService:
@@ -22,6 +22,7 @@ class CollectionService:
         *,
         repository: Repository,
         collector: Collector,
+        normalizer: Normalizer,
         clock: Clock,
         max_posts: int,
         ttl_seconds: int,
@@ -29,6 +30,7 @@ class CollectionService:
     ) -> None:
         self._repository = repository
         self._collector = collector
+        self._normalizer = normalizer
         self._clock = clock
         self._max_posts = max_posts
         self._ttl_seconds = ttl_seconds
@@ -36,7 +38,7 @@ class CollectionService:
         self._in_flight: dict[str, asyncio.Task[CollectionResponse]] = {}
 
     async def collect(self, term: str, force: bool) -> CollectionResponse:
-        subreddit = normalize_term(term)
+        subreddit = self._normalizer.normalize(term)
         if not force:
             fresh = self._repository.get_fresh_success(subreddit, self._ttl_seconds)
             if fresh is not None:
@@ -54,7 +56,7 @@ class CollectionService:
     def last_good(self, term: str) -> CollectionResponse | None:
         """The previous successful feed for a term, or None. Best effort: never raises."""
         try:
-            latest = self._repository.get_latest_success(normalize_term(term))
+            latest = self._repository.get_latest_success(self._normalizer.normalize(term))
         except AppError as error:
             if error.code != 'INVALID_TERM':
                 self._logger.warning('could not load the last good feed', exc_info=error)
@@ -63,7 +65,7 @@ class CollectionService:
 
     def get_posts(self, term: str) -> CollectionResponse:
         """Reads the stored feed only; never calls Reddit."""
-        latest = self._repository.get_latest_success(normalize_term(term))
+        latest = self._repository.get_latest_success(self._normalizer.normalize(term))
         if latest is None:
             return CollectionResponse(collection=None, posts=[])
         return self._to_response(latest, 'cache')

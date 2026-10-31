@@ -102,7 +102,7 @@ def test_a_protocol_needs_at_least_one_step():
         TermProtocol('x', ())
 
 
-# The reddit-subreddit preset: reproduces the rules of the former normalize_term exactly.
+# The reddit-subreddit preset: reproduces the subreddit rules used before protocols, exactly.
 
 
 def reddit_subreddit():

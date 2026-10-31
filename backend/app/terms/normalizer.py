@@ -6,11 +6,18 @@ protocol it is given, so protocols can be swapped without changing this module.
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Protocol
 
 from app.errors import AppError
 
 Step = Callable[[str], str]
 """One transformation of the term, or AppError('INVALID_TERM') to reject it."""
+
+
+class Normalizer(Protocol):
+    """What the rest of the app depends on: raw term in, normalized term out."""
+
+    def normalize(self, raw: str) -> str: ...
 
 
 @dataclass(frozen=True)

@@ -4,8 +4,10 @@ import pytest
 
 from app.errors import AppError
 from app.services.collection_service import CollectionService
+from app.terms.normalizer import TermNormalizer, TermProtocol
+from app.terms.steps import trim
 from tests.fakes import FakeCollector, memory_repository
-from tests.helpers import FakeClock, make_logger, make_post
+from tests.helpers import FakeClock, make_logger, make_normalizer, make_post
 
 pytestmark = pytest.mark.anyio
 
@@ -18,6 +20,7 @@ def setup():
     service = CollectionService(
         repository=repository,
         collector=collector,
+        normalizer=make_normalizer(),
         clock=clock,
         max_posts=25,
         ttl_seconds=60,
@@ -177,3 +180,29 @@ async def test_a_collector_error_keeps_its_original_cause_for_the_logs(setup):
         await service.collect('ubisoft', force=False)
 
     assert raised.value.__cause__ is network
+
+
+async def test_uses_the_injected_normalizer(setup):
+    _, collector, clock, _ = setup
+    db, repository = memory_repository(clock)
+    service = CollectionService(
+        repository=repository,
+        collector=collector,
+        normalizer=TermNormalizer(TermProtocol('test', (trim, lambda _text: 'fixed'))),
+        clock=clock,
+        max_posts=25,
+        ttl_seconds=60,
+        logger=make_logger(),
+    )
+
+    try:
+        await service.collect('anything', force=False)
+    finally:
+        db.close()
+
+    assert collector.calls == [('fixed', 25)]
+
+
+def test_last_good_returns_none_for_an_invalid_term(setup):
+    service, *_ = setup
+    assert service.last_good('bad name!') is None

@@ -8,7 +8,7 @@ from app.api import build_app
 from app.config import load_config
 from app.errors import AppError
 from tests.fakes import FakeCollector, memory_repository
-from tests.helpers import FakeClock, make_post
+from tests.helpers import FakeClock, make_normalizer, make_post
 
 pytestmark = pytest.mark.anyio
 
@@ -21,6 +21,7 @@ async def env():
     app = build_app(
         repository=repository,
         collector=collector,
+        normalizer=make_normalizer(),
         clock=clock,
         config=load_config({'STALE_AFTER_SECONDS': '600'}),
     )
@@ -258,6 +259,7 @@ async def static_client(static_dir):
     app = build_app(
         repository=repository,
         collector=FakeCollector(),
+        normalizer=make_normalizer(),
         clock=clock,
         config=load_config({}),
         static_dir=static_dir,

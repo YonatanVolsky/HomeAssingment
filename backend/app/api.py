@@ -14,6 +14,7 @@ from app.contracts import CollectionResponse
 from app.db.repository import Repository
 from app.errors import AppError, to_error_body
 from app.services.collection_service import CollectionService
+from app.terms.normalizer import Normalizer
 
 BODY_LIMIT_BYTES = 1024
 _MAX_TERM_LENGTH = 200
@@ -32,6 +33,7 @@ def build_app(
     *,
     repository: Repository,
     collector: Collector,
+    normalizer: Normalizer,
     clock: Clock,
     config: Config,
     static_dir: Path | None = None,
@@ -41,6 +43,7 @@ def build_app(
     service = CollectionService(
         repository=repository,
         collector=collector,
+        normalizer=normalizer,
         clock=clock,
         max_posts=config.max_posts,
         ttl_seconds=config.collection_ttl_seconds,

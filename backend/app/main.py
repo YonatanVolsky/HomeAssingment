@@ -9,7 +9,7 @@ from fastapi import FastAPI
 
 from app.api import build_app
 from app.clock import SystemClock
-from app.collector.factory import create_collector
+from app.collector.factory import create_collector, create_term_normalizer
 from app.collector.reddit.mobile_api import LIVE_COLLECTION_AVAILABLE
 from app.config import ConfigError, load_config
 from app.db.connection import open_database
@@ -35,6 +35,7 @@ def create_app_from_env(env: Mapping[str, str]) -> tuple[FastAPI, Callable[[], N
     app = build_app(
         repository=Repository(db, clock, logger),
         collector=create_collector(config, clock=clock, logger=logger),
+        normalizer=create_term_normalizer(config),
         clock=clock,
         config=config,
         static_dir=REPO_ROOT / 'frontend' / 'dist',
