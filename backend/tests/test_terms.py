@@ -2,6 +2,7 @@ import pytest
 
 from app.errors import AppError
 from app.terms.normalizer import TermNormalizer, TermProtocol
+from app.terms.presets import DEFAULT_PRESET, PRESETS
 from app.terms.steps import (
     extract_reddit_link,
     lowercase,
@@ -99,3 +100,65 @@ def test_normalizer_lets_step_errors_through():
 def test_a_protocol_needs_at_least_one_step():
     with pytest.raises(ValueError):
         TermProtocol('x', ())
+
+
+# The reddit-subreddit preset: reproduces the rules of the former normalize_term exactly.
+
+
+def reddit_subreddit():
+    return TermNormalizer(PRESETS['reddit-subreddit'])
+
+
+@pytest.mark.parametrize(
+    ('term', 'expected'),
+    [
+        ('ubisoft', 'ubisoft'),
+        ('r/Ubisoft', 'ubisoft'),
+        ('/r/Ubisoft/', 'ubisoft'),
+        ('  R/UBISOFT  ', 'ubisoft'),
+        ('https://www.reddit.com/r/ubisoft/', 'ubisoft'),
+        ('https://old.reddit.com/r/Ubisoft/new/?sort=new', 'ubisoft'),
+        ('reddit.com/r/ubisoft', 'ubisoft'),
+        ('de', 'de'),
+        ('Ask_Reddit_2', 'ask_reddit_2'),
+        ('a' * 21, 'a' * 21),
+        ('reddit.com/r/ubisoft/new', 'ubisoft'),
+        ('www.reddit.com/r/Ubisoft/comments/abc/some_post/', 'ubisoft'),
+    ],
+)
+def test_reddit_subreddit_accepts(term, expected):
+    assert reddit_subreddit().normalize(term) == expected
+
+
+@pytest.mark.parametrize(
+    'term',
+    [
+        '',
+        '   ',
+        'r/',
+        '/r/',
+        'a',
+        'a' * 22,
+        'bad name!',
+        'ubisoft crash',
+        'r/ubi-soft',
+        'https://example.com/r/ubisoft',
+        'r/ubisoft/new',
+        'https://reddit.com.evil.com/r/x',
+        'reddit.com',
+        'u/someone',
+        'ubisöft',
+    ],
+)
+def test_reddit_subreddit_rejects(term):
+    assert_invalid(reddit_subreddit().normalize, term)
+
+
+def test_the_default_preset_exists():
+    assert DEFAULT_PRESET in PRESETS
+    assert PRESETS[DEFAULT_PRESET].name == DEFAULT_PRESET
+
+
+def test_presets_are_read_only():
+    with pytest.raises(TypeError):
+        PRESETS['x'] = PRESETS[DEFAULT_PRESET]  # type: ignore[index]
