@@ -41,8 +41,8 @@ def test_error_table(code, http, auto_retry, retryable):
     assert actual == (http, auto_retry, retryable)
 
 
-def test_table_covers_nine_codes():
-    assert len(ERROR_TABLE) == 9
+def test_table_covers_ten_codes():
+    assert len(ERROR_TABLE) == 10
 
 
 def test_auto_retry_follows_the_table_unless_switched_off():

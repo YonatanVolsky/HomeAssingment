@@ -6,6 +6,7 @@ from typing import Literal, TypedDict
 
 ErrorCode = Literal[
     'INVALID_TERM',
+    'INVALID_REQUEST',
     'RATE_LIMITED',
     'UPSTREAM_AUTH',
     'UPSTREAM_ERROR',
@@ -30,6 +31,7 @@ class ErrorPolicy:
 ERROR_TABLE: MappingProxyType[str, ErrorPolicy] = MappingProxyType(
     {
         'INVALID_TERM': ErrorPolicy(400, False, False, 'Enter a subreddit name like r/ubisoft.'),
+        'INVALID_REQUEST': ErrorPolicy(400, False, False, 'The request is not valid.'),
         'RATE_LIMITED': ErrorPolicy(
             429, False, True, 'Reddit is limiting requests. Try again shortly.'
         ),
