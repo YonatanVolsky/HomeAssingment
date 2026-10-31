@@ -36,9 +36,16 @@ backend/.venv/bin/pip install -r backend/requirements-dev.txt
 npm install                       # installs the frontend and the web service (npm workspaces)
 ```
 
-On Windows, use `py -m venv backend\.venv` and `backend\.venv\Scripts\pip install -r
-backend\requirements-dev.txt`, then start the three parts in three terminals (see
-"Running the parts separately").
+On Windows (PowerShell), the setup is:
+
+```powershell
+py -m venv backend\.venv
+backend\.venv\Scripts\pip install -r backend\requirements-dev.txt
+npm install
+```
+
+`npm run dev` and `npm start` use macOS/Linux paths, so on Windows start the three parts in
+three terminals (see "Running the parts separately").
 
 ## Run
 
@@ -62,11 +69,23 @@ created with its schema on first start.
 
 ### Running the parts separately
 
+macOS / Linux:
+
 ```bash
 cd backend && COLLECTOR_MODE=fixture .venv/bin/python -m app.inner   # terminal 1: collector
 npm run dev -w server                                                # terminal 2: web service
 npm run dev -w frontend                                              # terminal 3: UI
 ```
+
+Windows (PowerShell), from the repository root:
+
+```powershell
+cd backend; $env:COLLECTOR_MODE = "fixture"; .venv\Scripts\python -m app.inner   # terminal 1
+npm run dev -w server                                                            # terminal 2
+npm run dev -w frontend                                                          # terminal 3
+```
+
+Leave out `COLLECTOR_MODE` (or set it to `live`) for live Reddit collection.
 
 ### Production-like run
 

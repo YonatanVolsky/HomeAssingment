@@ -21,6 +21,7 @@ const OWN_ERRORS = {
   UPSTREAM_TIMEOUT: { message: 'Reddit took too long to respond.', retryable: true },
   INTERNAL: { message: 'Something went wrong.', retryable: true },
   NOT_FOUND: { message: 'Not found.', retryable: false },
+  INVALID_REQUEST: { message: 'The request is not valid.', retryable: false },
 };
 
 export function statusFor(code) {

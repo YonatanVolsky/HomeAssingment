@@ -27,6 +27,7 @@ describe('errorBody', () => {
     ['UPSTREAM_TIMEOUT', 'Reddit took too long to respond.', true],
     ['INTERNAL', 'Something went wrong.', true],
     ['NOT_FOUND', 'Not found.', false],
+    ['INVALID_REQUEST', 'The request is not valid.', false],
   ])('%s', (code, message, retryable) => {
     expect(errorBody(code)).toEqual({ code, message, retryable });
   });

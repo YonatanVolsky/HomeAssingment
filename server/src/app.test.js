@@ -119,14 +119,30 @@ describe('static UI', () => {
     expect((await request(app).get('/app.js')).text).toBe('console.log(1)');
   });
 
-  it.each(['/..%2f..%2fpackage.json', '/%2e%2e/%2e%2e/package.json', '/../../package.json'])(
-    'never serves a file outside the build folder: %s',
-    async (url) => {
-      const { app } = appWith(async () => ({ ok: true, result }), dist());
-      const response = await request(app).get(url);
-      expect(response.text).not.toContain('"workspaces"');
-    },
-  );
+  it.each([
+    '/..%2fsecret.txt',
+    '/%2e%2e/secret.txt',
+    '/%2e%2e%2fsecret.txt',
+    '/assets/..%2f..%2fsecret.txt',
+  ])('never serves a file outside the build folder: %s', async (url) => {
+    // A sentinel next to the build folder: reachable only through an escape.
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ui-'));
+    fs.writeFileSync(path.join(root, 'secret.txt'), 'SENTINEL-OUTSIDE-DIST');
+    const dir = path.join(root, 'dist');
+    fs.mkdirSync(dir);
+    fs.writeFileSync(path.join(dir, 'index.html'), '<title>UI</title>');
+    const { app } = appWith(async () => ({ ok: true, result }), dir);
+    const response = await request(app).get(url);
+    expect(response.text).not.toContain('SENTINEL-OUTSIDE-DIST');
+  });
+
+  it('a malformed URL gets a plain error, never a stack trace', async () => {
+    const { app } = appWith(async () => ({ ok: true, result }), dist());
+    const response = await request(app).get('/%E0');
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: errorBody('INVALID_REQUEST') });
+    expect(response.text).not.toMatch(/URIError|node_modules|at /);
+  });
 
   it('serves no UI when there is no build', async () => {
     const { app } = appWith(async () => ({ ok: true, result }), undefined);

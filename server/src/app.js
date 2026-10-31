@@ -29,6 +29,13 @@ export function createApp({ routes, inner, staticDir }) {
   if (staticDir && fs.existsSync(path.join(staticDir, 'index.html'))) {
     serveUi(app, staticDir);
   }
+
+  // Last: anything Express itself rejects (e.g. a URL that cannot be decoded) gets a JSON
+  // error, never the default HTML page with a stack trace.
+  app.use((error, _req, res, _next) => {
+    const code = error?.status === 400 ? 'INVALID_REQUEST' : 'INTERNAL';
+    res.status(statusFor(code)).json({ error: errorBody(code) });
+  });
   return app;
 }
 
