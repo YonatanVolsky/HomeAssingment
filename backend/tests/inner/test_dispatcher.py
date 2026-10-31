@@ -28,7 +28,8 @@ def test_dispatches_to_the_resources_handler():
 
 
 def test_unknown_resource_is_invalid_request():
-    assert_invalid_request(Dispatcher({'posts': RecordingHandler()}).handle, Command('GET', 'x', {}))
+    dispatcher = Dispatcher({'posts': RecordingHandler()})
+    assert_invalid_request(dispatcher.handle, Command('GET', 'x', {}))
 
 
 def test_resources_lists_the_handler_names():
