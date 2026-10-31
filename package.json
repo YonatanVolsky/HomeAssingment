@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "workspaces": [
-    "frontend"
+    "frontend",
+    "server"
   ],
   "engines": {
     "node": ">=22"

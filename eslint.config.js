@@ -28,6 +28,15 @@ export default [
     languageOptions: { globals: { ...globals.vitest } },
   },
   {
+    files: ['server/**/*.js'],
+    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: globals.node },
+    rules: { 'no-unused-vars': ['error', { argsIgnorePattern: '^_' }] },
+  },
+  {
+    files: ['server/**/*.test.js'],
+    languageOptions: { globals: { ...globals.vitest } },
+  },
+  {
     files: ['eslint.config.js'],
     languageOptions: { sourceType: 'module', globals: globals.node },
   },
