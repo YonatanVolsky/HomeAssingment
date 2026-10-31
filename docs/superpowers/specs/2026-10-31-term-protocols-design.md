@@ -23,7 +23,8 @@ frontend and database are untouched.
 | Who selects it | The composition code (`collector/factory.py`), from the `TERM_PROTOCOL` setting. Not detected per request. |
 | What config can choose | A named preset only. Chains are defined in code, so every selectable chain is tested. |
 | Protocols implemented | `reddit-subreddit` only (today's rules). |
-| Is the kind stored? | No. The database stores posts in the existing structure only; the kind lives on the in-memory result. |
+| Is the kind stored? | No. The database stores posts in the existing structure only. |
+| Where does the kind live? | On the protocol only. It is a startup constant, used once to check the collector can serve it; the normalized result is a plain string. |
 
 ## Components
 
@@ -32,32 +33,28 @@ New package `backend/app/terms/`:
 ### `normalizer.py`
 
 ```python
-@dataclass(frozen=True)
-class Query:
-    kind: str     # what the value refers to, e.g. 'subreddit'
-    value: str    # the normalized term, e.g. 'ubisoft'
-
 Step = Callable[[str], str]   # returns the transformed text or raises AppError('INVALID_TERM')
 
 @dataclass(frozen=True)
 class TermProtocol:
     name: str
-    kind: str
+    kind: str     # what a normalized term refers to, e.g. 'subreddit'
     steps: tuple[Step, ...]
 
 class TermNormalizer:
     def __init__(self, protocol: TermProtocol) -> None: ...
     @property
     def kind(self) -> str: ...
-    def normalize(self, raw: str) -> Query: ...
+    def normalize(self, raw: str) -> str: ...
 ```
 
 `normalize` passes the raw term through each step in order, raises `INVALID_TERM` if the
-result is empty, and returns `Query(protocol.kind, text)`. It contains nothing specific to
-Reddit and never catches errors from steps.
+result is empty, and returns the text. It contains nothing specific to Reddit and never
+catches errors from steps.
 
-The kind is declared on the protocol, not set by a step, so no chain can produce a query
-without one.
+The kind is declared on the protocol, not set by a step, so every protocol has one. It is
+fixed for the life of the process, so results do not carry it; it is read once, at startup,
+for the collector check.
 
 ### `steps.py`
 
@@ -111,8 +108,8 @@ separate change.
   because they apply whatever the protocol.
 - **`services/collection_service.py`** receives the normalizer as a constructor argument and
   stops importing `normalize_term`. In `collect`, `last_good` and `get_posts` it calls
-  `normalizer.normalize(term)` and passes `query.value` where it passed the subreddit string,
-  so the repository and collector interfaces are unchanged.
+  `normalizer.normalize(term)` where it called `normalize_term(term)`, so the repository and
+  collector interfaces are unchanged.
 - **`collector/normalize_term.py`** is deleted. Its tests move to the new package.
 
 ## Error handling
