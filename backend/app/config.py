@@ -4,7 +4,16 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
+
+from app.terms.presets import DEFAULT_PRESET, PRESETS
 
 CollectorMode = Literal['live', 'fixture']
 LogLevel = Literal['critical', 'error', 'warning', 'info', 'debug']
@@ -26,6 +35,7 @@ class Config:
     request_timeout_ms: int
     collection_deadline_ms: int
     log_level: LogLevel
+    term_protocol: str
 
 
 class _Env(BaseModel):
@@ -41,6 +51,14 @@ class _Env(BaseModel):
     REQUEST_TIMEOUT_MS: Annotated[int, Field(ge=1000, le=20000)] = 8000
     COLLECTION_DEADLINE_MS: Annotated[int, Field(ge=5000, le=60000)] = 25000
     LOG_LEVEL: LogLevel = 'info'
+    TERM_PROTOCOL: str = DEFAULT_PRESET
+
+    @field_validator('TERM_PROTOCOL')
+    @classmethod
+    def _known_term_protocol(cls, value: str) -> str:
+        if value not in PRESETS:
+            raise ValueError(f'must be one of: {", ".join(PRESETS)}')
+        return value
 
     @model_validator(mode='after')
     def _timeout_below_deadline(self) -> '_Env':
@@ -73,4 +91,5 @@ def load_config(env: Mapping[str, str]) -> Config:
         request_timeout_ms=e.REQUEST_TIMEOUT_MS,
         collection_deadline_ms=e.COLLECTION_DEADLINE_MS,
         log_level=e.LOG_LEVEL,
+        term_protocol=e.TERM_PROTOCOL,
     )
