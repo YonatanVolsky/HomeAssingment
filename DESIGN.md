@@ -4,17 +4,25 @@
 
 ```
 Browser (React)
-  └─ POST /api/collections {term}         via the Vite dev proxy (same origin, no CORS)
-FastAPI on 127.0.0.1:3001                 backend/app/api.py
-  └─ CollectionService                    backend/app/services/collection_service.py
-       ├─ normalize_term          "r/Ubisoft", links → "ubisoft"; invalid → 400, Reddit never called
-       ├─ repository.get_fresh_success   a run younger than 60 s → return it as "cache"
-       ├─ in-flight tasks         a run already going for this term → wait for it
-       ├─ RedditCollector         deadline, retries, token refresh
-       │    ├─ TokenProvider      the app's anonymous token, cached until shortly before expiry
-       │    └─ ListingSource      the app's "subreddit, sorted by New" request, parsed and validated
-       └─ repository.record_success      one SQLite transaction: upsert posts, insert run, link them
-  └─ response read back from SQLite (what you see is what was stored)
+  └─ GET /api/posts?term=r/Ubisoft&freshness=auto   via the Vite dev proxy (same origin, no CORS)
+Web service: Express on 127.0.0.1:3001             server/src/app.js
+  ├─ route preset (API_ROUTES=rest) turns the request into a command
+  │    {"v":1,"command":"GET","resource":"posts","args":{"term":"r/Ubisoft","freshness":"auto"}}
+  └─ innerClient: one JSON line over TCP, one JSON line back → HTTP status + JSON
+Collector: Python on 127.0.0.1:3002                backend/app/inner/
+  ├─ ThreadPoolServer      one request line per connection, from a pool of worker threads
+  ├─ RequestNormalizer     validates the message; term protocol: "r/Ubisoft", links → "ubisoft"
+  ├─ Dispatcher            resource "posts" → PostsHandler.get(args)   (INNER_ROUTES preset)
+  └─ PostsHandler          runs on the one event-loop thread (LoopThread):
+       auto → CollectionService.collect   live → collect(force)   stored → get_posts
+       CollectionService                  backend/app/services/collection_service.py
+         ├─ repository.get_fresh_success   a run younger than 60 s → return it as "cache"
+         ├─ in-flight tasks         a run already going for this term → wait for it
+         ├─ RedditCollector         deadline, retries, token refresh
+         │    ├─ TokenProvider      the app's anonymous token, cached until shortly before expiry
+         │    └─ ListingSource      the app's "subreddit, sorted by New" request, parsed and validated
+         └─ repository.record_success      one SQLite transaction: upsert posts, insert run, link them
+       response read back from SQLite (what you see is what was stored)
 Browser: state machine → cards, empty state or error banner
 ```
 
@@ -22,14 +30,19 @@ Browser: state machine → cards, empty state or error banner
 
 | Decision | Why | Trade-off |
 |---|---|---|
-| Python backend (FastAPI, `sqlite3`, `httpx`) | The language the author works in, and the usual one for scraping. If Reddit filters non-app clients by their TLS fingerprint, Python has `curl_cffi` to imitate one; Node has no mature equivalent | Two toolchains: Python for the backend, Node for the React build |
+| Two servers: Express web service + Python collector | The web service owns HTTP (routes, status codes, the UI); the collector does the brief's job (term in, collection out) and owns Reddit and the database. HTTP never reaches Python and domain rules never reach Node, so each side can change or be replaced alone | Three processes in development; a TCP hop per request (on localhost) |
+| Python for the collector | The usual language for scraping. Reddit's edge filters clients by their TLS fingerprint and Python has `curl_cffi` to imitate the app's; Node has no mature equivalent | Two toolchains (Python and Node) |
+| A line-based JSON protocol over TCP, one request per connection (`docs/inner-protocol.md`) | Simple to implement and to test by hand with `nc`; framing is a newline; no shared state between requests | A TCP handshake per request (negligible on localhost); no streaming |
+| A thread pool plus one event loop in the collector | Worker threads serve connections; every service, Reddit and SQLite call runs on one asyncio loop thread, so the existing async code (shared in-flight runs, one token refresh) keeps its guarantees and SQLite is used from one thread | Database and Reddit work is not parallel across threads (fine for one local user) |
+| `GET` with a `freshness` argument instead of POST | From the user's view, reading a feed is a GET; `auto`/`live`/`stored` covers search, Refresh and reload-restore with one command | `auto`/`live` can collect and write, so it is not a "safe" GET in HTTP terms; `Cache-Control: no-store` stops caches and prefetchers repeating it |
 | React frontend in plain JavaScript (JSX) | The UI needs a browser framework; plain JS keeps it readable without TypeScript. `src/api/types.js` documents the API shapes | No compile-time type checks in the UI; the tests cover behavior |
-| FastAPI | async fits waiting on Reddit; pydantic validates requests; tests call the app in-process through httpx, no port needed; free API docs at `/api/docs` | |
+| Express 5 for the web service | Small, well known, and enough for two routes plus static files; tests call it in-process with supertest | No generated API docs (FastAPI's `/api/docs` went with FastAPI); the README documents the API |
 | SQLite (Python's built-in `sqlite3`) | Nothing to install or start; explicit transactions are simple | One writer at a time (fine locally) |
 | Three tables: `posts`, `collections`, `collection_posts` | A feed is "the posts of the latest successful run for a term". Posts are stored once even when several terms return them, and history explains itself (failed runs keep their error code) | One join per feed read |
-| Synchronous request, no job queue | A collection takes seconds; a queue adds polling and state for no user benefit here | A slow Reddit holds the request open (bounded by the 25 s deadline) |
+| Synchronous request, no job queue | A collection takes seconds; a queue adds polling and state for no user benefit here | A slow Reddit holds the request open (bounded by the deadlines below) |
 | The cache is the database | One source of truth that survives restarts; the UI always knows how old data is | Cached counts can be up to a minute old |
-| pydantic at both edges | Bad requests are rejected and unexpected Reddit responses fail loudly instead of storing half-empty posts | Schema must change if Reddit changes its response |
+| Validation at both edges | Malformed commands are rejected (`INVALID_REQUEST`) and unexpected Reddit responses fail loudly instead of storing half-empty posts | Schema must change if Reddit changes its response |
+| Presets chosen at startup (`TERM_PROTOCOL`, `SERVER`, `INNER_ROUTES`, `API_ROUTES`) | Which rules, server and routes are used is a deployment choice (environment, e.g. Docker); every selectable option is defined and tested in code, and `app/composition.py` is the one place that picks | Each has one preset today; config can only pick presets, not assemble new ones |
 | Term rules are a chain of steps (a protocol), chosen at startup with `TERM_PROTOCOL` | The normalizer is generic and never changes; a new set of input rules is new steps plus one preset in `app/terms/presets.py`, picked by whoever deploys the app. The service depends only on a `normalize(raw) -> str` interface | Config can only pick presets defined in code, not assemble chains |
 | Fixture mode with its own database file | Demo and development without Reddit; sample data can never mix with real data | Sample data is synthetic |
 
@@ -37,23 +50,29 @@ Browser: state machine → cards, empty state or error banner
 
 - **Single responsibility:** `RedditCollector` only knows reliability (deadline, retry, token
   refresh); the Reddit request and parser live behind `ListingSource`; all SQL lives in
-  `Repository`; `CollectionService` only orchestrates; `api.py` only translates HTTP.
+  `Repository`; `CollectionService` only orchestrates; the Express app only translates HTTP;
+  the collector's server only frames bytes, the request normalizer only validates and
+  normalizes, the dispatcher only routes, and each handler serves one resource.
 - **Open/closed and dependency inversion:** high-level code depends on small `Protocol`
-  interfaces (`Collector`, `ListingSource`, `TokenSource`, `Clock`) passed in through
+  interfaces (`Collector`, `ListingSource`, `TokenSource`, `Clock`, `Normalizer`,
+  `CommandHandler`) passed in through
   constructors. Swapping live and fixture collectors, or Reddit changing its request, touches
   one implementation. The same seams let every test run offline with a fake clock and a real
   in-memory SQLite database.
 - **Interface segregation:** the token provider is consumed through a two-method
   `TokenSource`.
-- **One rule, one place:** a single error table (`app/errors.py`) decides HTTP status, whether
-  the collector retries, and whether the UI offers "Try again". A test asserts the retry
-  behavior matches it for every error code.
+- **One rule, one place:** a single error table (`app/errors.py`) decides whether the collector
+  retries and whether the UI offers "Try again"; HTTP status lives only in the web service's
+  table (`server/src/errors.js`). A test asserts the retry behavior matches it for every code.
 
 ## Reliability
 
-- **Timeouts:** 8 s per request and a 25 s deadline for the whole collection
-  (`asyncio.timeout`, covering token, retries and refresh). The browser waits 35 s, so the
-  backend always answers first.
+- **Timeouts, each layer longer than the one below:** 8 s per Reddit request; a 25 s
+  deadline for the whole collection (`asyncio.timeout`, covering token, retries and refresh);
+  a collector worker waits at most 30 s; the web service waits 35 s for the collector; the
+  browser waits 40 s. So the layer that knows most (and can attach `lastGood`) always answers
+  first. A connection must deliver its request line within 5 s in total, so a slow client
+  cannot hold a worker.
 - **Retries:** network errors, timeouts and 5xx are retried twice with exponential backoff and
   jitter, but never past the deadline. 429 is never retried (it makes rate limiting worse) and
   its `Retry-After` reaches the UI as a countdown. A 401/403 triggers one token refresh, and
@@ -92,10 +111,15 @@ developer API.
 - Counts are as of the last collection; no background refresh.
 - No retention pruning: the database grows by one run per live collection (posts are
   de-duplicated, so a local demo stays small).
-- The in-flight de-duplication is per process (correct for one local server).
-- No authentication or rate limiting on our own API (local tool).
+- The in-flight de-duplication is per process (correct for one local collector).
+- All database and Reddit work runs on one event-loop thread; the worker pool adds
+  concurrency for connections and waiting, not for database writes.
+- The collector accepts connections without a cap on the queue; an idle-connection flood could
+  exhaust file descriptors. Both servers bind to localhost only.
+- No authentication or rate limiting on our own API or between the web service and the
+  collector (local tool, both on localhost).
 - `npm run dev` uses macOS/Linux paths for the Python virtual environment; Windows users run
-  the two parts in separate terminals.
+  the three parts in separate terminals.
 - Depends on an old app version's unofficial endpoints, which Reddit can change or block, and
   on the `chrome_android` transport fingerprint remaining accepted by Reddit's edge.
 

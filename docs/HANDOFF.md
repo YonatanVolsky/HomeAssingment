@@ -10,13 +10,17 @@ conversation history, which does not carry over between sessions.
 - **The required app is built, tested, and live collection works.** You can enter a subreddit
   and the backend fetches its real newest posts from Reddit, stores them in SQLite, and the UI
   shows them as cards. Verified live on 2026-10-30 (`docs/acceptance.md`, Run 3).
-- **Live collection is the real thing now**, not a placeholder:
-  `backend/app/collector/reddit/mobile_api.py` builds and sends the actual token and GraphQL
-  listing requests, and `LIVE_COLLECTION_AVAILABLE = True`.
-- **Tested:** Python backend (FastAPI, sqlite3, httpx + curl_cffi; 260 pytest cases plus one
-  opt-in `live`), React JSX frontend (88 Vitest cases). All green on 2026-10-31, as are lint,
-  the compliance and secret checks, `npm run test:live` and `scripts/smoke.sh` against a live
-  backend (25 real r/ubisoft posts).
+- **Architecture (2026-10-31):** browser → **Express web service** (`server/`, :3001, REST:
+  `GET /api/posts?term&freshness`, `GET /api/health`) → one JSON line over TCP → **Python
+  collector** (`backend/app/inner/`, :3002, thread pool + one event-loop thread) → Reddit and
+  SQLite. FastAPI is gone; `python -m app.inner` is the only backend entry point. Protocol:
+  `docs/inner-protocol.md`; design: DESIGN.md and
+  `docs/superpowers/specs/2026-10-31-express-and-inner-server-design.md`.
+- **Live collection is the real thing**: `backend/app/collector/reddit/mobile_api.py` builds and
+  sends the actual token and GraphQL listing requests.
+- **Tested:** collector (pytest, 342 cases plus one opt-in `live`), web service (Vitest +
+  supertest, 60), frontend (Vitest, 87). All green on 2026-10-31, as are lint, the compliance
+  and secret checks, and `scripts/smoke.sh` against the stack in fixture mode.
 - **Fixed 2026-10-31: missing or banned subreddits.** Reddit answers these with HTTP 200, not
   404: `postFeed: null` for a name that does not exist, `__typename: "UnavailableSubreddit"`
   for a banned (and presumably private) one. The parser used to report both as "Reddit
@@ -25,13 +29,15 @@ conversation history, which does not carry over between sessions.
   and show the empty state. Details in `docs/reddit-mobile-request.md`, "Errors and limits".
 - `feat/app` is the earlier TypeScript version, kept for history only.
 
-- **Term protocols (2026-10-31, branch `feat/term-protocols`).** The term is normalized by a
-  chain of steps chosen at startup with `TERM_PROTOCOL` (only `reddit-subreddit`), in
-  `backend/app/terms/`; `normalize_term` is gone. Spec and plan:
-  `docs/superpowers/specs/2026-10-31-term-protocols-design.md`,
-  `docs/superpowers/plans/2026-10-31-term-protocols.md`. **Next:** the command layer (wrap the
-  normalized term in a command type + arguments, map triggers to commands; today only GET),
-  as its own spec.
+- **Presets chosen at startup** (environment, e.g. Docker): `TERM_PROTOCOL` (term rules,
+  `backend/app/terms/`), `SERVER` and `INNER_ROUTES` (collector), `API_ROUTES` (web service).
+  `backend/app/composition.py` is the one place that wires the collector from config.
+- **Deferred minors from the reviews** (none block the app): a "Task exception was never
+  retrieved" log line when every waiter times out and the shared collection then fails; the
+  `last_good` lookup after an error uses the full timeout; no cap on queued collector
+  connections; `app/inner/__main__.py` has no `__name__` guard and prints a raw traceback when
+  its port is taken; config imports the server class through the presets module; the term is
+  normalized twice (correct while presets are idempotent).
 
 ## The one thing that made live collection work (the fingerprint)
 
@@ -70,13 +76,13 @@ git checkout feat/python
 Then follow README.md "Setup (once)": Python 3.11+ and Node 22+. Check it works:
 
 ```bash
-npm test                               # offline; expect all backend + frontend tests green
+npm test                               # offline; collector + web service + frontend, all green
 COLLECTOR_MODE=fixture npm run dev     # offline demo: open http://localhost:5173, search "ubisoft"
 npm run dev                            # live: fetches real Reddit posts
 ```
 
-On Windows, use the Windows commands in README.md and run backend and frontend in two
-terminals.
+On Windows, use the Windows commands in README.md and run the collector, the web service and
+the frontend in three terminals.
 
 ## Open to-do (the project's remaining steps)
 
@@ -86,9 +92,8 @@ Nothing is required for the app to work; these finish and package it.
    DESIGN.md).
 2. **Clean-machine dry run** from the README, to confirm a fresh clone runs with no hidden
    steps.
-3. **Fix stale wording**: README.md still says `test:live` runs "after the capture" and that
-   the capture result "will be documented"; `docs/acceptance.md` has no live end-to-end row
-   yet.
+3. **Acceptance record**: `docs/acceptance.md` has no run against the Express + collector stack
+   with live Reddit yet.
 4. **Merge `feat/python` into `main`** once the above pass. Until then a reviewer cloning the
    default branch gets only the plan, not the app.
 5. **Push to GitHub** (needs the owner's login; a Claude session cannot do this).
