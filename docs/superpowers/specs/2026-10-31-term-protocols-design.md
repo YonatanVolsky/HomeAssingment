@@ -18,13 +18,13 @@ frontend and database are untouched.
 
 | Question | Decision |
 |---|---|
-| What is a protocol? | All layers together: the input formats accepted, the target's naming rule, and the kind of query the result is. |
+| What is a protocol? | All layers together: the input formats accepted and the target's naming rule, as one chain. |
 | Structure | A protocol is an ordered chain of small step functions (option C); the normalizer runs whatever chain it is given. |
 | Who selects it | The composition code (`collector/factory.py`), from the `TERM_PROTOCOL` setting. Not detected per request. |
 | What config can choose | A named preset only. Chains are defined in code, so every selectable chain is tested. |
 | Protocols implemented | `reddit-subreddit` only (today's rules). |
-| Is the kind stored? | No. The database stores posts in the existing structure only. |
-| Where does the kind live? | On the protocol only. It is a startup constant, used once to check the collector can serve it; the normalized result is a plain string. |
+| Output | A plain normalized string. No query kind anywhere: with one protocol per process it would be a constant nothing reads. The database is unchanged. |
+| Commands | Wrapping the normalized string in a command (type + arguments) is a separate design, done next on top of this one; it does not change the normalizer. |
 
 ## Components
 
@@ -38,23 +38,16 @@ Step = Callable[[str], str]   # returns the transformed text or raises AppError(
 @dataclass(frozen=True)
 class TermProtocol:
     name: str
-    kind: str     # what a normalized term refers to, e.g. 'subreddit'
     steps: tuple[Step, ...]
 
 class TermNormalizer:
     def __init__(self, protocol: TermProtocol) -> None: ...
-    @property
-    def kind(self) -> str: ...
     def normalize(self, raw: str) -> str: ...
 ```
 
 `normalize` passes the raw term through each step in order, raises `INVALID_TERM` if the
 result is empty, and returns the text. It contains nothing specific to Reddit and never
 catches errors from steps.
-
-The kind is declared on the protocol, not set by a step, so every protocol has one. It is
-fixed for the life of the process, so results do not carry it; it is read once, at startup,
-for the collector check.
 
 ### `steps.py`
 
@@ -77,7 +70,6 @@ SUBREDDIT_NAME = r'[A-Za-z0-9_]{2,21}'   # comment on legacy 2-letter names kept
 PRESETS = {
     'reddit-subreddit': TermProtocol(
         name='reddit-subreddit',
-        kind='subreddit',
         steps=(trim, extract_reddit_link, strip_r_prefix, strip_trailing_slash,
                require_pattern(SUBREDDIT_NAME), lowercase),
     ),
@@ -95,13 +87,9 @@ separate change.
 - **`config.py`**: a new `TERM_PROTOCOL` setting, default `reddit-subreddit`, exposed as
   `Config.term_protocol`. A name not in `PRESETS` fails `load_config` with
   `Invalid configuration: TERM_PROTOCOL: ...`, so the app does not start.
-- **Collectors** declare which kinds they serve: a `supported_kinds: frozenset[str]` attribute
-  on the `Collector` protocol. `RedditCollector`, `FixtureCollector` and the tests' `FakeCollector`
-  declare `{'subreddit'}`.
 - **`collector/factory.py`** (the composition point) gains
-  `create_term_normalizer(config, collector) -> TermNormalizer`. It looks up the preset and
-  raises `ConfigError` if `collector.supported_kinds` does not contain the preset's kind,
-  so a mismatched deployment fails at startup, not on the first search.
+  `create_term_normalizer(config) -> TermNormalizer`, which looks up the configured preset.
+  Collectors are unchanged.
 - **`main.py`** builds the normalizer and passes it to `build_app`.
 - **`api.py`**: `build_app` takes a `normalizer` argument and hands it to
   `CollectionService`. The 1 KB body limit and 200-character limit stay in the API layer,
@@ -115,21 +103,21 @@ separate change.
 ## Error handling
 
 Every rejection is `AppError('INVALID_TERM')`, raised by a step or by the normalizer's empty
-check; no new error codes or messages. Configuration problems (unknown preset, kind not
-served by the collector) are `ConfigError`, reported at startup in the existing format.
+check; no new error codes or messages. An unknown preset name is a `ConfigError`, reported
+at startup in the existing format.
 
 ## Testing (written before the code)
 
 - **Steps**: each step on its own, including links without `/r/`, a host that only starts with
   `reddit.com`, and text that should pass through unchanged.
-- **Normalizer**: with a protocol defined inside the test (for example: trim, uppercase,
-  kind `test`), proving a different chain works without changing the normalizer; the
+- **Normalizer**: with a protocol defined inside the test (for example: trim, uppercase),
+  proving a different chain works without changing the normalizer; the
   empty-result check; errors from steps pass through.
 - **Behaviour preserved**: the existing 10 accepted and 10 rejected cases from
   `test_collector_helpers.py`, plus `reddit.com/r/ubisoft/new` → `ubisoft` and
   `r/ubisoft/new` → rejected, run against the `reddit-subreddit` preset.
 - **Config**: default value, an explicit valid value, an unknown value rejected.
-- **Factory**: builds the preset's normalizer; refuses a collector without the preset's kind.
+- **Factory**: builds the configured preset's normalizer.
 - **Service and API**: existing tests pass with the injected normalizer; no behaviour
   change in `test_api.py` or `test_service.py`.
 - Full suite, lint, compliance and secret checks green before committing.
@@ -153,5 +141,6 @@ protocol this cannot happen.
 
 - Any second protocol, search, or change to the collector's requests.
 - Per-request protocol selection, and configuring a chain step by step.
-- A `kind` column or any other database change.
+- A query kind, and any database change.
+- The command layer (type + arguments, trigger-to-command mapping): its own spec, next.
 - Showing protocol-specific hint text in the UI.
