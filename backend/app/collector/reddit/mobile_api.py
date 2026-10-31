@@ -22,8 +22,6 @@ from app.config import Config
 from app.contracts import Post
 from app.errors import AppError
 
-LIVE_COLLECTION_AVAILABLE = True
-
 APP_VERSION = '2024.24.0'
 APP_BUILD = '1675730'
 USER_AGENT = f'Reddit/Version {APP_VERSION}/Build {APP_BUILD}/Android 13'

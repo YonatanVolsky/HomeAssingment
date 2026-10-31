@@ -3,10 +3,9 @@ import pytest
 from app.errors import ERROR_TABLE, AppError, to_error_body
 
 
-def test_derives_http_status_and_retryable_from_the_code():
+def test_derives_retryable_from_the_code():
     error = AppError('NOT_FOUND_SUBREDDIT', 'r/x was not found')
 
-    assert error.http_status == 404
     assert error.retryable is False
     assert error.message == 'r/x was not found'
 
@@ -22,23 +21,26 @@ def test_rate_limit_message_includes_the_wait():
 
 
 @pytest.mark.parametrize(
-    ('code', 'http', 'auto_retry', 'retryable'),
+    ('code', 'auto_retry', 'retryable'),
     [
-        ('INVALID_TERM', 400, False, False),
-        ('RATE_LIMITED', 429, False, True),
-        ('UPSTREAM_AUTH', 502, False, True),
-        ('UPSTREAM_ERROR', 502, True, True),
-        ('UPSTREAM_TIMEOUT', 504, True, True),
-        ('NOT_FOUND_SUBREDDIT', 404, False, False),
-        ('CONTRACT_ERROR', 502, False, True),
-        ('DB_ERROR', 500, False, True),
-        ('INTERNAL', 500, False, True),
+        ('INVALID_TERM', False, False),
+        ('RATE_LIMITED', False, True),
+        ('UPSTREAM_AUTH', False, True),
+        ('UPSTREAM_ERROR', True, True),
+        ('UPSTREAM_TIMEOUT', True, True),
+        ('NOT_FOUND_SUBREDDIT', False, False),
+        ('CONTRACT_ERROR', False, True),
+        ('DB_ERROR', False, True),
+        ('INTERNAL', False, True),
     ],
 )
-def test_error_table(code, http, auto_retry, retryable):
+def test_error_table(code, auto_retry, retryable):
     policy = ERROR_TABLE[code]
-    actual = (policy.http_status, policy.auto_retry, policy.retryable)
-    assert actual == (http, auto_retry, retryable)
+    assert (policy.auto_retry, policy.retryable) == (auto_retry, retryable)
+
+
+def test_http_status_is_not_known_here():
+    assert not hasattr(AppError('INTERNAL'), 'http_status')
 
 
 def test_table_covers_ten_codes():

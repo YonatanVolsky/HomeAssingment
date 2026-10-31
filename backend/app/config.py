@@ -32,8 +32,6 @@ class ConfigError(Exception):
 
 @dataclass(frozen=True)
 class Config:
-    port: int
-    host: str
     collector_mode: CollectorMode
     db_path: str
     max_posts: int
@@ -61,8 +59,6 @@ _PRESET_CHOICES = {
 class _Env(BaseModel):
     model_config = ConfigDict(extra='ignore')
 
-    PORT: Annotated[int, Field(ge=0, le=65535)] = 3001
-    HOST: Annotated[str, Field(min_length=1)] = '127.0.0.1'
     COLLECTOR_MODE: CollectorMode = 'live'
     DB_PATH: str | None = None
     MAX_POSTS: Annotated[int, Field(ge=1, le=100)] = 25
@@ -107,8 +103,6 @@ def load_config(env: Mapping[str, str]) -> Config:
 
     default_db = './data/fixture.db' if e.COLLECTOR_MODE == 'fixture' else './data/collector.db'
     return Config(
-        port=e.PORT,
-        host=e.HOST,
         collector_mode=e.COLLECTOR_MODE,
         db_path=e.DB_PATH or default_db,
         max_posts=e.MAX_POSTS,

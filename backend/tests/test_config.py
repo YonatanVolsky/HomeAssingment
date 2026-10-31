@@ -8,8 +8,6 @@ from app.config import ConfigError, load_config
 def test_applies_defaults_when_the_environment_is_empty():
     config = load_config({})
 
-    assert config.port == 3001
-    assert config.host == '127.0.0.1'
     assert config.collector_mode == 'live'
     assert config.db_path == './data/collector.db'
     assert config.max_posts == 25
@@ -37,23 +35,18 @@ def test_lets_an_explicit_db_path_win_over_the_fixture_default():
 
 
 def test_parses_numeric_values_from_strings():
-    config = load_config({'PORT': '4000', 'COLLECTION_TTL_SECONDS': '0'})
-    assert (config.port, config.collection_ttl_seconds) == (4000, 0)
+    config = load_config({'INNER_PORT': '4000', 'COLLECTION_TTL_SECONDS': '0'})
+    assert (config.inner_port, config.collection_ttl_seconds) == (4000, 0)
 
 
 def test_treats_empty_values_as_unset():
-    assert load_config({'PORT': '', 'DB_PATH': ''}).port == 3001
-
-
-def test_accepts_port_zero_which_lets_the_os_pick_a_free_port():
-    assert load_config({'PORT': '0'}).port == 0
+    assert load_config({'INNER_PORT': '', 'DB_PATH': ''}).inner_port == 3002
 
 
 @pytest.mark.parametrize(
     ('env', 'variable'),
     [
-        ({'PORT': '70000'}, 'PORT'),
-        ({'PORT': 'abc'}, 'PORT'),
+        ({'INNER_PORT': 'abc'}, 'INNER_PORT'),
         ({'COLLECTOR_MODE': 'browser'}, 'COLLECTOR_MODE'),
         ({'MAX_POSTS': '0'}, 'MAX_POSTS'),
         ({'LOG_LEVEL': 'loud'}, 'LOG_LEVEL'),
@@ -80,11 +73,17 @@ def test_an_empty_term_protocol_falls_back_to_the_default():
     assert load_config({'TERM_PROTOCOL': ''}).term_protocol == 'reddit-subreddit'
 
 
-def test_accepts_inner_port_zero():
+def test_accepts_inner_port_zero_which_lets_the_os_pick_a_free_port():
     assert load_config({'INNER_PORT': '0'}).inner_port == 0
 
 
 def test_returns_an_immutable_config():
     config = load_config({})
     with pytest.raises(dataclasses.FrozenInstanceError):
-        config.port = 1  # type: ignore[misc]
+        config.inner_port = 1  # type: ignore[misc]
+
+
+def test_the_web_service_settings_are_not_read_here():
+    config = load_config({'PORT': 'abc', 'HOST': ''})
+    assert not hasattr(config, 'port')
+    assert not hasattr(config, 'host')

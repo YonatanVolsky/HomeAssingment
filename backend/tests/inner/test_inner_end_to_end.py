@@ -180,3 +180,43 @@ def test_python_m_app_inner_serves_and_refuses_bad_config(tmp_path):
     output, _ = refused.communicate(timeout=20)
     assert refused.returncode == 1
     assert 'Invalid configuration: SERVER' in output
+
+
+def test_the_feed_survives_a_restart_on_the_same_file(tmp_path):
+    config = load_config(
+        {'COLLECTOR_MODE': 'fixture', 'DB_PATH': str(tmp_path / 'r.db'), 'INNER_PORT': '0'}
+    )
+    replies = []
+    for freshness in (None, 'stored'):
+        app = build_inner(config, logger=make_logger())
+        threading.Thread(target=app.server.serve_forever, daemon=True).start()
+        try:
+            replies.append(ask(app.server.address, posts('ubisoft', freshness))['result'])
+        finally:
+            app.close()
+    assert replies[1]['posts'] == replies[0]['posts']
+
+
+def test_re_collecting_never_duplicates_posts(start, tmp_path):
+    import sqlite3
+
+    address = start()
+    ask(address, posts('ubisoft', 'live'))
+    ask(address, posts('ubisoft', 'live'))
+    with sqlite3.connect(tmp_path / 'x.db') as db:
+        assert db.execute('SELECT COUNT(*) FROM posts').fetchone()[0] == 7
+
+
+def test_relative_db_paths_resolve_from_the_repo_root(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    config = load_config(
+        {'COLLECTOR_MODE': 'fixture', 'DB_PATH': 'data/rel-test.db', 'INNER_PORT': '0'}
+    )
+    build_inner(config, logger=make_logger()).close()
+    created = BACKEND.parent / 'data' / 'rel-test.db'
+    try:
+        assert created.exists()
+        assert not (tmp_path / 'data').exists()
+    finally:
+        for suffix in ('', '-wal', '-shm'):
+            Path(f'{created}{suffix}').unlink(missing_ok=True)

@@ -1,4 +1,6 @@
-"""One table decides HTTP status, collector auto-retry and UI retryability for every error."""
+"""One table decides collector auto-retry, UI retryability and the message for every error.
+
+HTTP status is the web service's concern (server/src/errors.js)."""
 
 from dataclasses import dataclass
 from types import MappingProxyType
@@ -20,7 +22,6 @@ ErrorCode = Literal[
 
 @dataclass(frozen=True)
 class ErrorPolicy:
-    http_status: int
     auto_retry: bool
     """Whether the collector re-sends the same request itself before giving up."""
     retryable: bool
@@ -30,20 +31,18 @@ class ErrorPolicy:
 
 ERROR_TABLE: MappingProxyType[str, ErrorPolicy] = MappingProxyType(
     {
-        'INVALID_TERM': ErrorPolicy(400, False, False, 'Enter a subreddit name like r/ubisoft.'),
-        'INVALID_REQUEST': ErrorPolicy(400, False, False, 'The request is not valid.'),
-        'RATE_LIMITED': ErrorPolicy(
-            429, False, True, 'Reddit is limiting requests. Try again shortly.'
-        ),
-        'UPSTREAM_AUTH': ErrorPolicy(502, False, True, 'Could not authenticate with Reddit.'),
-        'UPSTREAM_ERROR': ErrorPolicy(502, True, True, 'Reddit is unavailable right now.'),
-        'UPSTREAM_TIMEOUT': ErrorPolicy(504, True, True, 'Reddit took too long to respond.'),
+        'INVALID_TERM': ErrorPolicy(False, False, 'Enter a subreddit name like r/ubisoft.'),
+        'INVALID_REQUEST': ErrorPolicy(False, False, 'The request is not valid.'),
+        'RATE_LIMITED': ErrorPolicy(False, True, 'Reddit is limiting requests. Try again shortly.'),
+        'UPSTREAM_AUTH': ErrorPolicy(False, True, 'Could not authenticate with Reddit.'),
+        'UPSTREAM_ERROR': ErrorPolicy(True, True, 'Reddit is unavailable right now.'),
+        'UPSTREAM_TIMEOUT': ErrorPolicy(True, True, 'Reddit took too long to respond.'),
         'NOT_FOUND_SUBREDDIT': ErrorPolicy(
-            404, False, False, 'That subreddit was not found or is not public.'
+            False, False, 'That subreddit was not found or is not public.'
         ),
-        'CONTRACT_ERROR': ErrorPolicy(502, False, True, 'Reddit returned an unexpected response.'),
-        'DB_ERROR': ErrorPolicy(500, False, True, 'Could not save results locally.'),
-        'INTERNAL': ErrorPolicy(500, False, True, 'Something went wrong.'),
+        'CONTRACT_ERROR': ErrorPolicy(False, True, 'Reddit returned an unexpected response.'),
+        'DB_ERROR': ErrorPolicy(False, True, 'Could not save results locally.'),
+        'INTERNAL': ErrorPolicy(False, True, 'Something went wrong.'),
     }
 )
 
@@ -76,10 +75,6 @@ class AppError(Exception):
         self._retryable_override = retryable
         super().__init__(self.message)
         self.__cause__ = cause
-
-    @property
-    def http_status(self) -> int:
-        return ERROR_TABLE[self.code].http_status
 
     @property
     def retryable(self) -> bool:
