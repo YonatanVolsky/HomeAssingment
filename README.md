@@ -95,6 +95,28 @@ npm run build                           # builds the UI into frontend/dist
 npm start                               # collector + web service; the UI and API on :3001
 ```
 
+### Talking to the collector directly
+
+An interactive client speaks the collector's TCP protocol, with no web service or browser
+involved. With only the collector running (`npm run dev:inner`, or
+`COLLECTOR_MODE=fixture npm run dev:inner` for sample data), run in another terminal:
+
+```bash
+npm run client                          # or: cd backend && .venv/bin/python -m app.client
+npm run client -- --port 4002           # another address (default: INNER_HOST / INNER_PORT)
+```
+
+```
+collector> r/ubisoft                    newest posts: stored if recent, else collected now
+collector> :live r/ubisoft              always collect from Reddit
+collector> :stored r/ubisoft            only what is stored
+collector> :health                      status and mode
+collector> :json                        raw JSON replies on/off
+collector> :quit                        or Ctrl+D; Ctrl+C cancels a request in progress
+```
+
+On Windows: `cd backend; .venv\Scripts\python -m app.client`.
+
 ## API
 
 | Request | Meaning |
@@ -194,6 +216,7 @@ sqlite3 data/collector.db "SELECT term, status, post_count, finished_at FROM col
 ```
 backend/              Python: the collector (inner server)
   app/inner/          TCP server, wire protocol, request normalizer, dispatcher, handlers
+  app/client/         interactive TCP client for the collector (npm run client)
   app/composition.py  builds everything from configuration (picks the presets)
   app/services/       collection service (cache, de-duplication, failure recording)
   app/terms/          term protocols: normalization steps, presets, the generic normalizer

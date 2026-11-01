@@ -73,6 +73,10 @@ HTTP status codes are not part of this protocol; the web service maps codes to s
 
 ## Trying it by hand
 
+The interactive client (`npm run client`, code in `backend/app/client/`) sends these messages
+and prints the replies as text or JSON; see the README, "Talking to the collector directly".
+With `nc`:
+
 ```bash
 printf '{"v":1,"command":"GET","resource":"posts","args":{"term":"r/ubisoft"}}\n' | nc 127.0.0.1 3002
 printf '{"v":1,"command":"GET","resource":"health"}\n' | nc 127.0.0.1 3002

@@ -19,6 +19,7 @@
     "start": "concurrently -n inner,server -c magenta,blue \"npm:start:inner\" \"npm:start:server\"",
     "start:inner": "cd backend && .venv/bin/python -m app.inner",
     "start:server": "npm start -w server",
+    "client": "cd backend && .venv/bin/python -m app.client",
     "test": "npm run test:backend && npm run test:server && npm run test:frontend",
     "test:backend": "cd backend && .venv/bin/pytest",
     "test:server": "npm test -w server",
