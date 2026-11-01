@@ -1,7 +1,7 @@
 import net from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
 import { InnerError } from './errors.js';
-import { createInnerClient } from './innerClient.js';
+import { createInnerClient, errorCodeFor } from './innerClient.js';
 
 const servers = [];
 
@@ -87,8 +87,49 @@ describe('innerClient.send', () => {
     expect(Date.now() - started).toBeLessThan(1000);
   });
 
-  it.each(['not json\n', '[]\n', '{"result":1}\n'])('reports INTERNAL for %j', async (reply) => {
+  it.each([
+    'not json\n',
+    '[]\n',
+    '{"result":1}\n',
+    '{"ok":true}\n',
+    '{"ok":false}\n',
+    '{"ok":false,"error":{}}\n',
+    '{"ok":false,"error":{"code":5,"message":"x","retryable":true}}\n',
+    '{"ok":false,"error":{"code":"X","retryable":true}}\n',
+    '{"ok":false,"error":{"code":"X","message":"x","retryable":"yes"}}\n',
+  ])('reports INTERNAL for %j', async (reply) => {
     const port = await fakeServer((socket) => socket.end(reply));
     await expectCode(client(port).send(message), 'INTERNAL');
+  });
+
+  it('accepts an error reply with its optional fields', async () => {
+    const reply = {
+      ok: false,
+      error: { code: 'RATE_LIMITED', message: 'Wait.', retryable: true, retryAfterSeconds: 3 },
+      lastGood: null,
+    };
+    const port = await fakeServer((socket) => socket.end(JSON.stringify(reply) + '\n'));
+    await expect(client(port).send(message)).resolves.toEqual(reply);
+  });
+});
+
+describe('errorCodeFor', () => {
+  it.each([
+    'ECONNREFUSED',
+    'ECONNRESET',
+    'EPIPE',
+    'ENOTFOUND',
+    'EHOSTUNREACH',
+    'ENETUNREACH',
+    'ETIMEDOUT',
+    'EAI_AGAIN',
+    'ECONNABORTED',
+    'EADDRNOTAVAIL',
+  ])('%s means the collector is unavailable', (code) => {
+    expect(errorCodeFor(Object.assign(new Error(code), { code }))).toBe('INNER_UNAVAILABLE');
+  });
+
+  it('anything else is INTERNAL', () => {
+    expect(errorCodeFor(new Error('boom'))).toBe('INTERNAL');
   });
 });

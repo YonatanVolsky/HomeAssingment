@@ -4,7 +4,19 @@ import net from 'node:net';
 import { InnerError } from './errors.js';
 
 const MAX_REPLY_BYTES = 1024 * 1024;
-const UNAVAILABLE_CODES = new Set(['ECONNREFUSED', 'ECONNRESET', 'EPIPE', 'ENOTFOUND']);
+// Socket errors that mean the collector cannot be reached (rather than a bug here).
+const UNAVAILABLE_CODES = new Set([
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'EPIPE',
+  'ENOTFOUND',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+  'ETIMEDOUT',
+  'EAI_AGAIN',
+  'ECONNABORTED',
+  'EADDRNOTAVAIL',
+]);
 
 export function createInnerClient({ host, port, timeoutMs }) {
   return { send: (message) => send({ host, port, timeoutMs }, message) };
@@ -37,10 +49,12 @@ function send({ host, port, timeoutMs }, message) {
       if (size > MAX_REPLY_BYTES) fail('INTERNAL');
     });
     socket.on('end', () => fail('INNER_UNAVAILABLE'));
-    socket.on('error', (error) =>
-      fail(UNAVAILABLE_CODES.has(error.code) ? 'INNER_UNAVAILABLE' : 'INTERNAL', error),
-    );
+    socket.on('error', (error) => fail(errorCodeFor(error), error));
   });
+}
+
+export function errorCodeFor(error) {
+  return UNAVAILABLE_CODES.has(error?.code) ? 'INNER_UNAVAILABLE' : 'INTERNAL';
 }
 
 function parseReply(line, resolve, reject) {
@@ -50,7 +64,18 @@ function parseReply(line, resolve, reject) {
   } catch (cause) {
     return reject(new InnerError('INTERNAL', { cause }));
   }
-  const isProtocolReply =
-    reply !== null && typeof reply === 'object' && typeof reply.ok === 'boolean';
-  return isProtocolReply ? resolve(reply) : reject(new InnerError('INTERNAL'));
+  return isProtocolReply(reply) ? resolve(reply) : reject(new InnerError('INTERNAL'));
+}
+
+// The shapes of docs/inner-protocol.md; app.js relies on them.
+function isProtocolReply(reply) {
+  if (!isObject(reply)) return false;
+  if (reply.ok === true) return 'result' in reply;
+  if (reply.ok !== false || !isObject(reply.error)) return false;
+  const { code, message, retryable } = reply.error;
+  return typeof code === 'string' && typeof message === 'string' && typeof retryable === 'boolean';
+}
+
+function isObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
