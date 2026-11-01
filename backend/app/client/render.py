@@ -4,6 +4,8 @@ import json
 from datetime import datetime
 from typing import Any
 
+_POST_FIELDS = ('title', 'author', 'score', 'commentCount', 'permalink')
+
 
 def render(resource: str, reply: dict[str, Any], *, as_json: bool) -> str:
     if as_json:
@@ -23,15 +25,13 @@ def _feed(result: dict[str, Any]) -> str:
         f'r/{collection["term"]} · {_count(collection["postCount"], "post")} · '
         f'{collection["source"]} · collected {_time(collection["collectedAt"])}'
     ]
-    for number, post in enumerate(result['posts'], start=1):
-        lines += [
-            f'  {number}. {post["title"]}',
-            f'     u/{post["author"] or "[deleted]"} · {_count(post["score"], "point")} · '
-            f'{_count(post["commentCount"], "comment")}',
-            f'     {post["permalink"]}',
-        ]
+    # One line per post, like the brief's example output: `00: {'title': ..., ...}`.
+    width = max(2, len(str(len(result['posts']) - 1)))
+    for number, post in enumerate(result['posts']):
+        fields = {key: post[key] for key in _POST_FIELDS}
+        lines.append(f'{number:0{width}d}: {fields!r}')
     if not result['posts']:
-        lines.append('  No posts found.')
+        lines.append('No posts found.')
     return '\n'.join(lines)
 
 

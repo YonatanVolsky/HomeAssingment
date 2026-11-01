@@ -23,27 +23,27 @@ def ok(result):
     return {'ok': True, 'result': result}
 
 
-def test_a_feed_has_a_summary_line_then_one_block_per_post():
+def test_a_feed_has_a_summary_line_then_one_dict_per_post_like_the_brief():
     text = render('posts', ok(feed()), as_json=False)
     assert text.splitlines() == [
         'r/ubisoft · 1 post · live · collected 2026-10-31 14:55:24 UTC',
-        '  1. First',
-        '     u/someone · 12 points · 3 comments',
-        '     https://www.reddit.com/r/ubisoft/comments/t3_a/',
+        "00: {'title': 'First', 'author': 'someone', 'score': 12, 'commentCount': 3, "
+        "'permalink': 'https://www.reddit.com/r/ubisoft/comments/t3_a/'}",
     ]
 
 
-def test_counts_are_plural_and_a_deleted_author_is_named():
-    posts = [make_post('t3_a', author=None, score=1, comment_count=1), make_post('t3_b')]
-    text = render('posts', ok(feed(posts, source='cache')), as_json=False)
-    assert text.startswith('r/ubisoft · 2 posts · cache ·')
-    assert 'u/[deleted] · 1 point · 1 comment' in text
-    assert '  2. Post t3_b' in text
+def test_indexes_are_zero_padded_and_quotes_follow_python():
+    posts = [make_post(f't3_{n}') for n in range(11)]
+    posts[0] = make_post('t3_0', title="It's here", author=None)
+    lines = render('posts', ok(feed(posts, source='cache')), as_json=False).splitlines()
+    assert lines[0].startswith('r/ubisoft · 11 posts · cache ·')
+    assert lines[1].startswith("00: {'title': \"It's here\", 'author': None,")
+    assert lines[11].startswith("10: {'title': 'Post t3_10',")
 
 
 def test_an_empty_feed_says_so():
     text = render('posts', ok(feed([])), as_json=False)
-    assert text.splitlines()[1] == '  No posts found.'
+    assert text.splitlines()[1] == 'No posts found.'
 
 
 def test_a_term_never_collected():
