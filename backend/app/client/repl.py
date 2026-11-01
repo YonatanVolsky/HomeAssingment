@@ -28,11 +28,17 @@ class Connection(Protocol):
 
 class Repl:
     def __init__(
-        self, connection: Connection, read: Callable[[str], str], write: Callable[[str], None]
+        self,
+        connection: Connection,
+        read: Callable[[str], str],
+        write: Callable[[str], None],
+        width: Callable[[], int | None] = lambda: None,
     ) -> None:
+        """`width` gives the terminal width at each reply (None: never cut lines)."""
         self._connection = connection
         self._read = read
         self._write = write
+        self._width = width
         self._as_json = False
 
     def run(self) -> None:
@@ -78,4 +84,6 @@ class Repl:
         except KeyboardInterrupt:
             self._write('Cancelled.')
         else:
-            self._write(render(message['resource'], reply, as_json=self._as_json))
+            self._write(
+                render(message['resource'], reply, as_json=self._as_json, width=self._width())
+            )

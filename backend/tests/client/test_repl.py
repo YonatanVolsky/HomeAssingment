@@ -4,6 +4,7 @@ import pytest
 
 from app.client.connection import ConnectionFailed
 from app.client.repl import Repl
+from tests.helpers import make_post
 
 HEALTH = {
     'ok': True,
@@ -104,3 +105,33 @@ def test_ctrl_c_while_waiting_cancels_that_request_only():
     out = session(connection, 'slow', 'next')
     assert 'Cancelled.' in out
     assert len(connection.sent) == 3
+
+
+def test_post_lines_are_cut_at_the_current_terminal_width():
+    reply = {
+        'ok': True,
+        'result': {
+            'collection': {
+                'id': 1,
+                'term': 'ubisoft',
+                'source': 'live',
+                'collectedAt': '2026-10-31T14:55:24.992Z',
+                'postCount': 1,
+            },
+            'posts': [make_post('t3_a', title='z' * 200).model_dump(by_alias=True)],
+        },
+    }
+    output = []
+    lines = iter(['ubisoft'])
+
+    def read(_prompt):
+        try:
+            return next(lines)
+        except StopIteration:
+            raise EOFError from None
+
+    Repl(FakeConnection(HEALTH, reply), read, output.append, width=lambda: 50).run()
+    post_line = next(
+        line for chunk in output for line in chunk.splitlines() if line.startswith('00:')
+    )
+    assert len(post_line) == 50 and post_line.endswith('…')

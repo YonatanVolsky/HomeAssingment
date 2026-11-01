@@ -45,6 +45,7 @@ def test_a_session_against_the_real_collector(collector):
     out = result.stdout
     assert f'Connected to the collector at 127.0.0.1:{port} (fixture mode).' in out
     assert 'r/ubisoft · 7 posts · live' in out
+    assert "'permalink': 'https://www.reddit.com/r/ubisoft/comments/" in out  # piped: not cut
     assert 'r/ubisoft · 7 posts · cache' in out
     assert 'error NOT_FOUND_SUBREDDIT' in out
     assert '"collectorMode": "fixture"' in out

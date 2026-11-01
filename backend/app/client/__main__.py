@@ -3,6 +3,8 @@
 import argparse
 import contextlib
 import os
+import shutil
+import sys
 
 from app.client.connection import InnerConnection
 from app.client.repl import Repl
@@ -25,7 +27,13 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     with contextlib.suppress(ImportError):  # line editing and history, where available
         import readline  # noqa: F401
-    Repl(InnerConnection(args.host, args.port, args.timeout), input, print).run()
+    connection = InnerConnection(args.host, args.port, args.timeout)
+    Repl(connection, input, print, width=_terminal_width).run()
+
+
+def _terminal_width() -> int | None:
+    """The window's current width, so lines fit it; None when output is piped (keep all)."""
+    return shutil.get_terminal_size().columns if sys.stdout.isatty() else None
 
 
 if __name__ == '__main__':

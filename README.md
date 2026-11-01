@@ -115,6 +115,9 @@ collector> :json                        raw JSON replies on/off
 collector> :quit                        or Ctrl+D; Ctrl+C cancels a request in progress
 ```
 
+Each post is one line, cut at the window's width like the brief's example output; `:json`
+shows the full replies, and piped output (`npm run client > out.txt`) is never cut.
+
 On Windows: `cd backend; .venv\Scripts\python -m app.client`.
 
 ## API

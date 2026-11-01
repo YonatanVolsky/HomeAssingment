@@ -94,3 +94,23 @@ def test_json_mode_prints_the_whole_reply_indented():
     text = render('posts', reply, as_json=True)
     assert json.loads(text) == reply
     assert '\n  "ok": true' in text
+
+
+def test_post_lines_are_cut_at_the_width_like_the_brief():
+    posts = [make_post('t3_a', title='x' * 80), make_post('t3_b', title='y')]
+    lines = render('posts', ok(feed(posts)), as_json=False, width=40).splitlines()
+    assert lines[1] == "00: {'title': '" + 'x' * 24 + '…'
+    assert all(len(line) <= 40 for line in lines[1:])
+    assert lines[0].startswith('r/ubisoft · 2 posts')  # the summary line is not cut
+
+
+def test_a_line_that_fits_is_left_whole():
+    posts = [make_post('t3_a', title='y')]
+    full = render('posts', ok(feed(posts)), as_json=False).splitlines()[1]
+    assert render('posts', ok(feed(posts)), as_json=False, width=len(full)).splitlines()[1] == full
+
+
+def test_the_last_good_feed_is_cut_too():
+    error = {'code': 'UPSTREAM_ERROR', 'message': 'Down.', 'retryable': True}
+    reply = {'ok': False, 'error': error, 'lastGood': feed()}
+    assert render('posts', reply, as_json=False, width=30).splitlines()[3].endswith('…')
