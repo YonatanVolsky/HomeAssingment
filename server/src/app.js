@@ -26,9 +26,7 @@ export function createApp({ routes, inner, staticDir }) {
 
   app.use('/api', (_req, res) => res.status(404).json({ error: errorBody('NOT_FOUND') }));
 
-  if (staticDir && fs.existsSync(path.join(staticDir, 'index.html'))) {
-    serveUi(app, staticDir);
-  }
+  if (staticDir) serveUi(app, staticDir);
 
   // Last: anything Express itself rejects (e.g. a URL that cannot be decoded) gets a JSON
   // error, never the default HTML page with a stack trace.
@@ -51,10 +49,18 @@ function sendReply(res, reply) {
   res.status(statusFor(error.code)).json({ error, ...(lastGood !== undefined && { lastGood }) });
 }
 
+const NOT_BUILT =
+  'The UI is not built yet. Run "npm run build" and reload, or use "npm run dev" for development.';
+
 // Files from the build; any other page gets index.html (client-side routes).
-// express.static never serves outside its root.
+// express.static never serves outside its root. The build is looked up per request, so
+// building while the web service runs needs no restart.
 function serveUi(app, staticDir) {
   const root = path.resolve(staticDir);
+  const index = path.join(root, 'index.html');
   app.use(express.static(root, { index: 'index.html' }));
-  app.get('/{*page}', (_req, res) => res.sendFile(path.join(root, 'index.html')));
+  app.get('/{*page}', (_req, res) => {
+    if (fs.existsSync(index)) res.sendFile(index);
+    else res.status(503).type('text/plain').send(NOT_BUILT);
+  });
 }

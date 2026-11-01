@@ -148,4 +148,21 @@ describe('static UI', () => {
     const { app } = appWith(async () => ({ ok: true, result }), undefined);
     expect((await request(app).get('/')).status).toBe(404);
   });
+
+  it('says how to build the UI when its folder has no build yet', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'empty-dist-'));
+    const { app } = appWith(async () => ({ ok: true, result }), dir);
+    const response = await request(app).get('/');
+    expect(response.status).toBe(503);
+    expect(response.text).toContain('npm run build');
+    expect((await request(app).get('/api/nope')).body).toEqual({ error: errorBody('NOT_FOUND') });
+  });
+
+  it('serves a build made after the web service started', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'late-dist-'));
+    const { app } = appWith(async () => ({ ok: true, result }), dir);
+    await request(app).get('/');
+    fs.writeFileSync(path.join(dir, 'index.html'), '<title>Late</title>');
+    expect((await request(app).get('/')).text).toContain('<title>Late</title>');
+  });
 });
