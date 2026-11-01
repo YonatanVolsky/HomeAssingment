@@ -12,6 +12,8 @@ from app.config import ConfigError, load_config
 
 logger = logging.getLogger('app.inner')
 
+_SHUTDOWN_GRACE_SECONDS = 2.0
+
 
 def main() -> None:
     try:
@@ -29,9 +31,19 @@ def main() -> None:
         )
         sys.exit(1)
 
+    stopping = threading.Event()
+
     def stop(_signum: int, _frame: object) -> None:
+        if stopping.is_set():  # a second Ctrl+C: stop now
+            os._exit(1)
+        stopping.set()
         # shutdown() waits for serve_forever to return, so it must run off the main thread.
         threading.Thread(target=app.server.shutdown, daemon=True).start()
+        # A running request can wait up to the collection deadline; don't hold up Ctrl+C.
+        # Every write is a committed SQLite transaction, so exiting mid-request loses nothing.
+        force = threading.Timer(_SHUTDOWN_GRACE_SECONDS, os._exit, args=(0,))
+        force.daemon = True  # a clean stop must not wait for it
+        force.start()
 
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)

@@ -34,5 +34,12 @@ server.on('error', (error) => {
   console.error(`web service could not start: ${error.message}`);
   process.exit(1);
 });
-for (const signal of ['SIGINT', 'SIGTERM'])
-  process.on(signal, () => server.close(() => process.exit(0)));
+// Stop accepting, let running requests finish for a moment, then cut them: a request can
+// wait up to INNER_TIMEOUT_MS for the collector, too long to hold up Ctrl+C.
+const SHUTDOWN_GRACE_MS = 2000;
+function stop() {
+  server.close(() => process.exit(0));
+  server.closeIdleConnections();
+  setTimeout(() => server.closeAllConnections(), SHUTDOWN_GRACE_MS).unref();
+}
+for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, stop);

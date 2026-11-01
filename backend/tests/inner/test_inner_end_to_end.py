@@ -182,6 +182,30 @@ def test_python_m_app_inner_serves_and_refuses_bad_config(tmp_path):
     assert 'Invalid configuration: SERVER' in output
 
 
+def test_stopping_does_not_wait_out_a_request_in_progress(tmp_path):
+    port = free_port()
+    process = run_inner(tmp_path, INNER_PORT=str(port), LOG_LEVEL='warning')
+    try:
+        for _ in range(50):
+            try:
+                silent = socket.create_connection(('127.0.0.1', port), timeout=1)
+                break
+            except OSError:
+                time.sleep(0.1)
+        else:
+            pytest.fail('inner server did not start')
+        with silent:  # holds a worker until the 5 s read timeout
+            time.sleep(0.2)
+            started = time.monotonic()
+            process.terminate()
+            process.wait(timeout=10)
+            elapsed = time.monotonic() - started
+    finally:
+        process.kill()
+    assert process.returncode == 0
+    assert elapsed < 4
+
+
 def test_a_taken_port_is_a_clear_message_not_a_traceback(tmp_path):
     with socket.socket() as taken:
         taken.bind(('127.0.0.1', 0))
