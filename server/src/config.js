@@ -3,6 +3,12 @@ import { ROUTE_NAMES } from './routes.js';
 
 export class ConfigError extends Error {}
 
+// The browser gives up after this long (CLIENT_TIMEOUT_MS in frontend/src/api/client.js).
+export const BROWSER_TIMEOUT_MS = 40000;
+// The collector waits for one collection this much longer than COLLECTION_DEADLINE_MS
+// (_TIMEOUT_MARGIN_SECONDS in backend/app/composition.py).
+const COLLECTOR_MARGIN_MS = 5000;
+
 function fail(variable, reason) {
   throw new ConfigError(`Invalid configuration: ${variable}: ${reason}`);
 }
@@ -33,6 +39,21 @@ function oneOf(env, variable, fallback, choices) {
   return value;
 }
 
+// Each layer must outlast the one it waits for, so the user sees the real error:
+// collector limit < INNER_TIMEOUT_MS < browser limit.
+function innerTimeout(env) {
+  const deadline = integer(env, 'COLLECTION_DEADLINE_MS', 25000, 5000, 60000);
+  const timeout = integer(env, 'INNER_TIMEOUT_MS', 35000, 1000, 120000);
+  const collectorLimit = deadline + COLLECTOR_MARGIN_MS;
+  if (timeout <= collectorLimit) {
+    fail('INNER_TIMEOUT_MS', `must be above ${collectorLimit} (COLLECTION_DEADLINE_MS + 5000)`);
+  }
+  if (timeout >= BROWSER_TIMEOUT_MS) {
+    fail('INNER_TIMEOUT_MS', `must be below ${BROWSER_TIMEOUT_MS} (the browser's limit)`);
+  }
+  return timeout;
+}
+
 export function loadConfig(env) {
   return {
     port: integer(env, 'PORT', 3001, 0, 65535),
@@ -40,7 +61,6 @@ export function loadConfig(env) {
     innerHost: text(env, 'INNER_HOST', '127.0.0.1'),
     innerPort: integer(env, 'INNER_PORT', 3002, 0, 65535),
     apiRoutes: oneOf(env, 'API_ROUTES', 'rest', ROUTE_NAMES),
-    // Above the inner server's own 30 s limit (25 s collection deadline + 5 s margin).
-    innerTimeoutMs: integer(env, 'INNER_TIMEOUT_MS', 35000, 1000, 120000),
+    innerTimeoutMs: innerTimeout(env),
   };
 }
