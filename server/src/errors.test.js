@@ -14,6 +14,7 @@ describe('statusFor', () => {
     ['UPSTREAM_ERROR', 502],
     ['CONTRACT_ERROR', 502],
     ['INNER_UNAVAILABLE', 503],
+    ['BUSY', 503],
     ['UPSTREAM_TIMEOUT', 504],
     ['SOMETHING_NEW', 500],
   ])('%s is %i', (code, status) => {
@@ -24,7 +25,7 @@ describe('statusFor', () => {
 describe('errorBody', () => {
   it.each([
     ['INNER_UNAVAILABLE', 'The collector service is not running.', true],
-    ['UPSTREAM_TIMEOUT', 'Reddit took too long to respond.', true],
+    ['UPSTREAM_TIMEOUT', 'The collector took too long to respond.', true],
     ['INTERNAL', 'Something went wrong.', true],
     ['NOT_FOUND', 'Not found.', false],
     ['INVALID_REQUEST', 'The request is not valid.', false],

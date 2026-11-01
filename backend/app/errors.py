@@ -17,6 +17,7 @@ ErrorCode = Literal[
     'CONTRACT_ERROR',
     'DB_ERROR',
     'INTERNAL',
+    'BUSY',
 ]
 
 
@@ -43,6 +44,7 @@ ERROR_TABLE: MappingProxyType[str, ErrorPolicy] = MappingProxyType(
         'CONTRACT_ERROR': ErrorPolicy(False, True, 'Reddit returned an unexpected response.'),
         'DB_ERROR': ErrorPolicy(False, True, 'Could not save results locally.'),
         'INTERNAL': ErrorPolicy(False, True, 'Something went wrong.'),
+        'BUSY': ErrorPolicy(False, True, 'The collector is busy. Try again shortly.'),
     }
 )
 

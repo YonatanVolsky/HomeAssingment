@@ -24,8 +24,10 @@ class Echo:
 
 
 @contextmanager
-def running(chain, threads=4, read_timeout_seconds=5.0):
-    server = ThreadPoolServer('127.0.0.1', 0, threads, chain, make_logger(), read_timeout_seconds)
+def running(chain, threads=4, read_timeout_seconds=5.0, **options):
+    server = ThreadPoolServer(
+        '127.0.0.1', 0, threads, chain, make_logger(), read_timeout_seconds, **options
+    )
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -171,3 +173,54 @@ def test_shutdown_without_serving_returns_promptly():
     stopper.start()
     stopper.join(2)
     assert not stopper.is_alive()
+
+
+class Gate:
+    """A chain that holds every request until released."""
+
+    def __init__(self):
+        self.open = threading.Event()
+
+    def handle(self, line):
+        self.open.wait(5)
+        return b'ok:' + line
+
+
+def wait_until(condition, seconds=5.0):
+    deadline = time.monotonic() + seconds
+    while not condition():
+        assert time.monotonic() < deadline, 'condition not reached'
+        time.sleep(0.01)
+
+
+def test_connections_beyond_the_queue_limit_are_refused_as_busy():
+    chain = Gate()
+    replies = {}
+
+    def send(name):
+        replies[name] = exchange(server.address, f'{name}\n'.encode())
+
+    with running(chain, threads=1, queue_limit=1) as server:
+        waiting = [threading.Thread(target=send, args=(name,)) for name in ('running', 'queued')]
+        try:
+            for count, thread in enumerate(waiting, start=1):
+                thread.start()
+                wait_until(lambda count=count: server.pending == count)
+            started = time.monotonic()
+            refused = exchange(server.address, b'refused\n')
+            assert time.monotonic() - started < 1
+        finally:
+            chain.open.set()
+            for thread in waiting:
+                thread.join(5)
+
+    assert error_code(refused) == 'BUSY'
+    assert replies == {'running': b'ok:running\n', 'queued': b'ok:queued\n'}
+
+
+def test_finished_requests_free_their_queue_slot():
+    chain = Echo()
+    with running(chain, threads=1, queue_limit=0) as server:
+        for _ in range(3):
+            assert exchange(server.address, b'x\n') == b'ok:x\n'
+        wait_until(lambda: server.pending == 0)

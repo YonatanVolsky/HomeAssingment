@@ -17,6 +17,7 @@ from app.inner.protocol import MAX_LINE_BYTES, encode_error
 
 _DRAIN_LIMIT_BYTES = 65536
 _DRAIN_TIMEOUT_SECONDS = 0.5
+_REFUSE_TIMEOUT_SECONDS = 0.5
 
 
 class LineHandler(Protocol):
@@ -41,9 +42,11 @@ class ThreadPoolServer:
         chain: LineHandler,
         logger: logging.Logger,
         read_timeout_seconds: float = 5.0,
+        queue_limit: int = 64,
     ) -> None:
+        """`queue_limit`: connections that may wait for a free thread; beyond that, BUSY."""
         self._executor = ThreadPoolExecutor(max_workers=threads, thread_name_prefix='inner')
-        self._tcp = _PooledTCPServer((host, port), self._executor)
+        self._tcp = _PooledTCPServer((host, port), self._executor, threads + queue_limit)
         self._tcp.chain = chain
         self._tcp.logger = logger
         self._tcp.read_timeout_seconds = read_timeout_seconds
@@ -55,6 +58,11 @@ class ThreadPoolServer:
     def address(self) -> tuple[str, int]:
         host, port = self._tcp.server_address[:2]
         return str(host), int(port)
+
+    @property
+    def pending(self) -> int:
+        """Connections accepted and not yet finished: running plus queued."""
+        return self._tcp.pending
 
     def serve_forever(self) -> None:
         with self._state:
@@ -86,11 +94,28 @@ class _PooledTCPServer(socketserver.TCPServer):
     logger: logging.Logger
     read_timeout_seconds: float
 
-    def __init__(self, address: tuple[str, int], executor: ThreadPoolExecutor) -> None:
+    def __init__(
+        self, address: tuple[str, int], executor: ThreadPoolExecutor, max_pending: int
+    ) -> None:
         self._executor = executor
+        self._max_pending = max_pending
+        self._pending = 0
+        self._pending_lock = threading.Lock()
         super().__init__(address, _LineRequestHandler)
 
+    @property
+    def pending(self) -> int:
+        with self._pending_lock:
+            return self._pending
+
     def process_request(self, request, client_address) -> None:  # type: ignore[no-untyped-def]
+        with self._pending_lock:
+            full = self._pending >= self._max_pending
+            if not full:
+                self._pending += 1
+        if full:
+            self._refuse(request)
+            return
         self._executor.submit(self._process_in_worker, request, client_address)
 
     def _process_in_worker(self, request, client_address) -> None:  # type: ignore[no-untyped-def]
@@ -98,6 +123,28 @@ class _PooledTCPServer(socketserver.TCPServer):
             self.finish_request(request, client_address)
         except Exception as error:
             self.logger.debug('connection %s ended with an error', client_address, exc_info=error)
+        finally:
+            self.shutdown_request(request)
+            with self._pending_lock:
+                self._pending -= 1
+
+    def _refuse(self, request: socket.socket) -> None:
+        """Answers BUSY on the accepting thread, so every step is bounded in time. After the
+        reply, it reads until the client hangs up, so closing does not reset away the reply."""
+        deadline = time.monotonic() + _REFUSE_TIMEOUT_SECONDS
+        try:
+            request.settimeout(_REFUSE_TIMEOUT_SECONDS)
+            request.sendall(encode_error(AppError('BUSY')))
+            request.shutdown(socket.SHUT_WR)
+            drained = 0
+            while drained < _DRAIN_LIMIT_BYTES and (remaining := deadline - time.monotonic()) > 0:
+                request.settimeout(remaining)
+                chunk = request.recv(4096)
+                if not chunk:
+                    break
+                drained += len(chunk)
+        except OSError:
+            pass
         finally:
             self.shutdown_request(request)
 

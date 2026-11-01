@@ -13,6 +13,8 @@ The Python collector (`backend/app/inner/`) listens on `INNER_HOST:INNER_PORT`
   `INVALID_REQUEST` reply.
 - The whole request line must arrive within **5 seconds**, otherwise the server closes the
   connection without a reply. A client that closes before sending `\n` gets no reply.
+- When every worker thread is busy and 64 more connections are already waiting, a new
+  connection gets a `BUSY` reply at once instead of waiting.
 
 ## Request
 
@@ -64,6 +66,7 @@ same term exists. `retryAfterSeconds` is present only for rate limits.
 | `CONTRACT_ERROR` | Reddit's response had an unexpected shape | yes |
 | `DB_ERROR` | The local database failed | yes |
 | `INTERNAL` | An unexpected error (details are only logged) | yes |
+| `BUSY` | Too many connections are already waiting; nothing was done | yes |
 
 HTTP status codes are not part of this protocol; the web service maps codes to statuses
 (`server/src/errors.js`).

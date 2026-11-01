@@ -12,13 +12,15 @@ const STATUS = {
   UPSTREAM_ERROR: 502,
   CONTRACT_ERROR: 502,
   INNER_UNAVAILABLE: 503,
+  BUSY: 503,
   UPSTREAM_TIMEOUT: 504,
 };
 
 // Errors raised here rather than by the inner server; same shape as the inner server's.
 const OWN_ERRORS = {
   INNER_UNAVAILABLE: { message: 'The collector service is not running.', retryable: true },
-  UPSTREAM_TIMEOUT: { message: 'Reddit took too long to respond.', retryable: true },
+  // The web service gave up waiting for the collector (Reddit timeouts come from the collector).
+  UPSTREAM_TIMEOUT: { message: 'The collector took too long to respond.', retryable: true },
   INTERNAL: { message: 'Something went wrong.', retryable: true },
   NOT_FOUND: { message: 'Not found.', retryable: false },
   INVALID_REQUEST: { message: 'The request is not valid.', retryable: false },
