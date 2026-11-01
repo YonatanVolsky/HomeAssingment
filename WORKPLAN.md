@@ -31,6 +31,8 @@ keeps the summary, the key decisions, and the completion criteria.
   throughout; switched so the code is in the author's language. Original line:
   TypeScript, Node 22 LTS (Node 20 is end of life), Fastify, zod, SQLite (`better-sqlite3`),
   undici, React + Vite, Vitest. See the decision table in `plan/README.md`.
+  Changed again on 2026-11-01: FastAPI was replaced by an Express web service in front of a
+  Python TCP collector (README, "How it fits together").
 - **Data model:** `posts`, `collections` (runs, including failures),
   `collection_posts`. A feed is the post set of a term's latest successful run.
   A failed run never replaces the last good feed.

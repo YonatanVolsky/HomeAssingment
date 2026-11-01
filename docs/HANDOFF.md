@@ -32,12 +32,16 @@ conversation history, which does not carry over between sessions.
 - **Presets chosen at startup** (environment, e.g. Docker): `TERM_PROTOCOL` (term rules,
   `backend/app/terms/`), `SERVER` and `INNER_ROUTES` (collector), `API_ROUTES` (web service).
   `backend/app/composition.py` is the one place that wires the collector from config.
-- **Deferred minors from the reviews** (none block the app): a "Task exception was never
-  retrieved" log line when every waiter times out and the shared collection then fails; the
-  `last_good` lookup after an error uses the full timeout; no cap on queued collector
-  connections; `app/inner/__main__.py` has no `__name__` guard and prints a raw traceback when
-  its port is taken; config imports the server class through the presets module; the term is
-  normalized twice (correct while presets are idempotent).
+- **Review minors, fixed on 2026-11-01:** no "Task exception was never retrieved" log; the
+  last good lookup has its own 5 s limit; queued collector connections are capped (64, then
+  `BUSY`); `python -m app.inner` reports a taken port in one line; the term is normalized once;
+  the web service checks the whole reply shape, maps unreachable-host errors to 503, refuses
+  timeout settings out of order, explains a missing UI build, and blames the collector (not
+  Reddit) for its own timeout; Ctrl+C gives running requests 2 s; the page retries health
+  while the collector starts.
+- **Kept on purpose:** `app/config.py` imports the server class through `app/inner/presets.py`,
+  the same way it imports the term protocols' steps. Splitting names from classes would add a
+  second list to keep in sync, for no behavior change.
 
 ## The one thing that made live collection work (the fingerprint)
 

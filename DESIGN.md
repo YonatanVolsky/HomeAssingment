@@ -71,7 +71,7 @@ Browser: state machine → cards, empty state or error banner
   deadline for the whole collection (`asyncio.timeout`, covering token, retries and refresh);
   a collector worker waits at most 30 s; the web service waits 35 s for the collector; the
   browser waits 40 s. So the layer that knows most (and can attach `lastGood`) always answers
-  first. A connection must deliver its request line within 5 s in total, so a slow client
+  first. The web service refuses to start with an `INNER_TIMEOUT_MS` outside that order. A connection must deliver its request line within 5 s in total, so a slow client
   cannot hold a worker.
 - **Retries:** network errors, timeouts and 5xx are retried twice with exponential backoff and
   jitter, but never past the deadline. 429 is never retried (it makes rate limiting worse) and
@@ -84,6 +84,10 @@ Browser: state machine → cards, empty state or error banner
 - **Failures:** every failed run is recorded with its error code and never replaces the last
   good feed, which the API returns next to the error.
 - **Writes are atomic:** posts, the run row and its links are one transaction.
+- **Overload:** up to 64 connections may wait for a free collector thread; more get `BUSY`
+  (503) at once instead of piling up.
+- **Stopping:** Ctrl+C gives running requests 2 s, then both servers exit; committed
+  transactions make that safe.
 
 ## Security
 
@@ -114,8 +118,8 @@ developer API.
 - The in-flight de-duplication is per process (correct for one local collector).
 - All database and Reddit work runs on one event-loop thread; the worker pool adds
   concurrency for connections and waiting, not for database writes.
-- The collector accepts connections without a cap on the queue; an idle-connection flood could
-  exhaust file descriptors. Both servers bind to localhost only.
+- Both servers bind to localhost only. A connection refused as `BUSY` is answered on the
+  accepting thread, which may then wait up to 0.5 s for that client to hang up.
 - No authentication or rate limiting on our own API or between the web service and the
   collector (local tool, both on localhost).
 - `npm run dev` uses macOS/Linux paths for the Python virtual environment; Windows users run

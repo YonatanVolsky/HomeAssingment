@@ -51,6 +51,9 @@ change the schema. Do not wait for the answer to start the capture.
 
 ## Stack decisions (change here first, then in the component files)
 
+> **Changed on 2026-11-01:** FastAPI was replaced by an Express web service (`server/`) in
+> front of a Python TCP collector (`backend/app/inner/`); see the top-level README.
+>
 > **Changed on 2026-10-29:** the backend was rewritten in Python (FastAPI, pydantic, the
 > built-in `sqlite3`, httpx, pytest) and the frontend converted to plain React JSX, so the code
 > is in the author's language. Behavior, tests and structure are unchanged; module names in the

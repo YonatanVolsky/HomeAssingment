@@ -54,7 +54,8 @@ npm run dev                            # live Reddit collection
 COLLECTOR_MODE=fixture npm run dev     # offline sample data (demo without hitting Reddit)
 ```
 
-Open **http://localhost:5173** and enter `ubisoft` or `r/ubisoft`. Stop with `Ctrl+C`.
+Open **http://localhost:5173** and enter `ubisoft` or `r/ubisoft`. Stop with `Ctrl+C`: a
+request still running gets 2 seconds to finish.
 
 `npm run dev` starts three processes, labelled in the terminal:
 
@@ -105,7 +106,8 @@ npm start                               # collector + web service; the UI and AP
 
 A success is `{collection, posts}`. A failure is `{error: {code, message, retryable,
 retryAfterSeconds?}, lastGood?}` with a matching HTTP status (400 bad term, 404 subreddit not
-found, 429 rate limited with `Retry-After`, 502/504 Reddit problems, 503 collector not running).
+found, 429 rate limited with `Retry-After`, 502/504 Reddit or collector timeouts, 503 collector
+not running or busy).
 `lastGood` is the previous successful feed for the same subreddit, when there is one.
 
 ```bash
@@ -141,7 +143,7 @@ Web service (Express):
 |---|---|---|
 | `PORT` / `HOST` | `3001` / `127.0.0.1` | Web service address. If you change `PORT`, also change the proxy in `frontend/vite.config.js` |
 | `INNER_HOST` / `INNER_PORT` | `127.0.0.1` / `3002` | Where to reach the collector (shared with the collector's settings) |
-| `INNER_TIMEOUT_MS` | `35000` | How long to wait for the collector; above its own 30 s limit |
+| `INNER_TIMEOUT_MS` | `35000` | How long to wait for the collector. Must be above `COLLECTION_DEADLINE_MS` + 5000 (the collector's own limit; read from the same environment) and below 40000 (the browser's limit), or the web service refuses to start |
 | `API_ROUTES` | `rest` | REST route preset (the only preset) |
 
 No Reddit credentials are needed: the collector requests the same anonymous token the mobile
@@ -222,3 +224,5 @@ and its result in [docs/reddit-mobile-request.md](docs/reddit-mobile-request.md)
 | "The collector service is not running." in the UI | The Python collector is down: check the `[inner]` lines in the terminal |
 | "Cannot reach the local server" in the UI | The web service is down: check the `[server]` lines in the terminal |
 | "Reddit is limiting requests" | Reddit returned HTTP 429. Wait for the countdown; avoid rapid repeated refreshes |
+| "The UI is not built yet" on :3001 | `npm start` serves the build: run `npm run build` first (or use `npm run dev`) |
+| `Invalid configuration: INNER_TIMEOUT_MS` | The timeouts must grow outward: see `INNER_TIMEOUT_MS` above |

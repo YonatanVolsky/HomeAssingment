@@ -2,6 +2,10 @@
 
 Checklist from `plan/06-testing-and-integration.md`. Updated each time it is run.
 
+Runs 1 and 2 predate the current stack (an Express web service in front of the Python
+collector, 2026-11-01) and are kept as a record. A run of the current stack against live
+Reddit is still to do.
+
 ## Run 1: 2026-10-29, offline (fixture mode)
 
 Environment: macOS 14.6.1 (Apple Silicon), Node 24.12.0, npm 11.6.2, SQLite CLI 3.43.2.
