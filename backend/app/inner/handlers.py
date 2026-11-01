@@ -85,8 +85,6 @@ class PostsHandler(ResourceHandler):
                 self._service.collect(term, force=freshness == 'live'), self._timeout
             )
         except AppError as error:
-            if error.code == 'INVALID_TERM':
-                raise
             raise CollectionFailed(error, self._last_good(term)) from error
         return _dump(response)
 

@@ -4,10 +4,8 @@ import pytest
 
 from app.errors import AppError
 from app.services.collection_service import CollectionService
-from app.terms.normalizer import TermNormalizer, TermProtocol
-from app.terms.steps import trim
 from tests.fakes import FakeCollector, memory_repository
-from tests.helpers import FakeClock, make_logger, make_normalizer, make_post
+from tests.helpers import FakeClock, make_logger, make_post
 
 pytestmark = pytest.mark.anyio
 
@@ -20,7 +18,6 @@ def setup():
     service = CollectionService(
         repository=repository,
         collector=collector,
-        normalizer=make_normalizer(),
         clock=clock,
         max_posts=25,
         ttl_seconds=60,
@@ -36,21 +33,12 @@ def runs(db, status):
 
 async def test_collects_live_stores_the_run_and_returns_what_was_stored(setup):
     service, collector, _, db = setup
-    response = await service.collect('r/Ubisoft', force=False)
+    response = await service.collect('ubisoft', force=False)
 
     assert collector.calls == [('ubisoft', 25)]
     assert (response.collection.term, response.collection.source) == ('ubisoft', 'live')
     assert sorted(p.id for p in response.posts) == ['t3_a', 't3_b']
     assert runs(db, 'success') == 1
-
-
-async def test_an_invalid_term_is_rejected_before_reddit_or_the_database(setup):
-    service, collector, _, db = setup
-    with pytest.raises(AppError) as raised:
-        await service.collect('bad name!', force=False)
-    assert raised.value.code == 'INVALID_TERM'
-    assert collector.calls == []
-    assert runs(db, 'failed') == 0
 
 
 async def test_a_fresh_collection_is_served_from_the_cache(setup):
@@ -78,7 +66,7 @@ async def test_concurrent_requests_for_one_term_share_one_collection(setup):
     service, collector, _, _ = setup
     collector.hold()
     first = asyncio.create_task(service.collect('ubisoft', force=False))
-    second = asyncio.create_task(service.collect('r/ubisoft', force=True))
+    second = asyncio.create_task(service.collect('ubisoft', force=True))
     await asyncio.sleep(0)
     collector.release()
 
@@ -146,10 +134,9 @@ async def test_zero_posts_is_a_successful_empty_collection(setup):
 async def test_last_good_returns_the_previous_feed_as_cache(setup):
     service, _, _, db = setup
     assert service.last_good('ubisoft') is None
-    assert service.last_good('bad name!') is None
     await service.collect('ubisoft', force=False)
 
-    last = service.last_good('r/UBISOFT')
+    last = service.last_good('ubisoft')
 
     assert (last.collection.source, last.collection.term) == ('cache', 'ubisoft')
     db.close()
@@ -167,8 +154,6 @@ async def test_get_posts_reads_the_database_only(setup):
     assert response.collection.source == 'cache'
     assert len(response.posts) == 2
     assert len(collector.calls) == 1
-    with pytest.raises(AppError):
-        service.get_posts('r/')
 
 
 async def test_a_collector_error_keeps_its_original_cause_for_the_logs(setup):
@@ -182,27 +167,8 @@ async def test_a_collector_error_keeps_its_original_cause_for_the_logs(setup):
     assert raised.value.__cause__ is network
 
 
-async def test_uses_the_injected_normalizer(setup):
-    _, collector, clock, _ = setup
-    db, repository = memory_repository(clock)
-    service = CollectionService(
-        repository=repository,
-        collector=collector,
-        normalizer=TermNormalizer(TermProtocol('test', (trim, lambda _text: 'fixed'))),
-        clock=clock,
-        max_posts=25,
-        ttl_seconds=60,
-        logger=make_logger(),
-    )
-
-    try:
-        await service.collect('anything', force=False)
-    finally:
-        db.close()
-
-    assert collector.calls == [('fixed', 25)]
-
-
-def test_last_good_returns_none_for_an_invalid_term(setup):
-    service, *_ = setup
-    assert service.last_good('bad name!') is None
+async def test_uses_the_subreddit_name_as_given(setup):
+    # The request stage normalizes the term once; the service must not change it again.
+    service, collector, _, _ = setup
+    await service.collect('Already_Normalized', force=False)
+    assert collector.calls == [('Already_Normalized', 25)]

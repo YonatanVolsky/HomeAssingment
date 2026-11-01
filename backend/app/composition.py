@@ -64,7 +64,6 @@ def build_inner(
         service = CollectionService(
             repository=repository,
             collector=collector or create_collector(config, clock=clock, logger=logger),
-            normalizer=create_term_normalizer(config),
             clock=clock,
             max_posts=config.max_posts,
             ttl_seconds=config.collection_ttl_seconds,

@@ -10,7 +10,7 @@ from app.inner.handlers import CollectionFailed, HealthHandler, PostsHandler
 from app.inner.loop_thread import LoopThread
 from app.services.collection_service import CollectionService
 from tests.fakes import FakeCollector, memory_repository
-from tests.helpers import FakeClock, make_logger, make_normalizer
+from tests.helpers import FakeClock, make_logger
 
 
 @pytest.fixture
@@ -28,7 +28,6 @@ def parts(loop):
     service = CollectionService(
         repository=repository,
         collector=collector,
-        normalizer=make_normalizer(),
         clock=clock,
         max_posts=25,
         ttl_seconds=60,
@@ -149,7 +148,6 @@ def test_a_collection_that_fails_after_every_waiter_left_logs_no_asyncio_error(l
     service = CollectionService(
         repository=repository,
         collector=collector,
-        normalizer=make_normalizer(),
         clock=clock,
         max_posts=25,
         ttl_seconds=60,
