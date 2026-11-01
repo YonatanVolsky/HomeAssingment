@@ -108,6 +108,23 @@ describe('App', () => {
     render(<App />);
     expect(await screen.findByText(/offline mode/i)).toBeInTheDocument();
   });
+  it('waits for a collector that is still starting before reading health and restoring', async () => {
+    localStorage.setItem(LAST_TERM_KEY, 'ubisoft');
+    let collectorUp = false;
+    const down = () =>
+      json(503, { error: { code: 'INNER_UNAVAILABLE', message: 'Down.', retryable: true } });
+    serve({
+      health: () => {
+        if (collectorUp) return health('fixture');
+        collectorUp = true;
+        return down();
+      },
+      posts: () => (collectorUp ? json(200, feed(undefined, 'cache')) : down()),
+    });
+    render(<App />);
+    expect(await screen.findByText(/offline mode/i, {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'First post' })).toBeInTheDocument();
+  });
   it('restores the last searched subreddit from the database on reload', async () => {
     localStorage.setItem(LAST_TERM_KEY, 'ubisoft');
     const fetchMock = serve({ posts: () => json(200, feed(undefined, 'cache')) });

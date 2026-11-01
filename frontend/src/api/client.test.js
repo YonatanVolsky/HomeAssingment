@@ -100,4 +100,29 @@ describe('getHealth', () => {
     };
     expect(await getHealth({ fetchImpl })).toEqual(DEFAULT_HEALTH);
   });
+  it('retries while the collector is still starting', async () => {
+    const body = { status: 'ok', db: 'ok', collectorMode: 'fixture', staleAfterSeconds: 10 };
+    const down = { error: { code: 'INNER_UNAVAILABLE', message: 'Down.', retryable: true } };
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(json(503, down))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(json(200, body));
+    expect(await getHealth({ fetchImpl, attempts: 5, intervalMs: 1 })).toEqual(body);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
+  it('falls back to defaults after the last attempt', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    expect(await getHealth({ fetchImpl, attempts: 3, intervalMs: 1 })).toEqual(DEFAULT_HEALTH);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
+  it('stops retrying when the caller aborts', async () => {
+    const controller = new AbortController();
+    const fetchImpl = vi.fn(async () => {
+      controller.abort();
+      throw new TypeError('Failed to fetch');
+    });
+    await getHealth({ fetchImpl, attempts: 5, intervalMs: 1, signal: controller.signal });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
 });

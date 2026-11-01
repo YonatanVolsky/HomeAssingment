@@ -35,12 +35,20 @@ export function getFeed(term, freshness, options = {}) {
   return request(`/api/posts?${query}`, {}, options);
 }
 
-export async function getHealth(options = {}) {
-  try {
-    return await request('/api/health', {}, { timeoutMs: 5000, ...options });
-  } catch {
-    return DEFAULT_HEALTH;
+/**
+ * The server's health, or DEFAULT_HEALTH if it cannot be read. `attempts` > 1 retries
+ * every `intervalMs`, for a page opened while the collector is still starting.
+ */
+export async function getHealth({ attempts = 1, intervalMs = 500, ...options } = {}) {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await request('/api/health', {}, { timeoutMs: 5000, ...options });
+    } catch {
+      if (options.signal?.aborted || attempt === attempts) break;
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
   }
+  return DEFAULT_HEALTH;
 }
 
 async function request(url, init, options) {

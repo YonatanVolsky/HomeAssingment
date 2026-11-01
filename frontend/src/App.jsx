@@ -10,6 +10,9 @@ import { readLastTerm, saveLastTerm } from './lib/lastTerm';
 import { useNow } from './lib/useNow';
 import { visibleFeed } from './state/collectionReducer';
 import { useCollection } from './state/useCollection';
+// About 10 s at the client's 500 ms interval.
+const STARTUP_HEALTH_ATTEMPTS = 20;
+
 export function App() {
   const { view, submit, retry, restore } = useCollection();
   const [health, setHealth] = useState(DEFAULT_HEALTH);
@@ -17,12 +20,17 @@ export function App() {
   const now = useNow();
   useEffect(() => {
     const controller = new AbortController();
-    void getHealth({ signal: controller.signal }).then(setHealth);
-    if (initialTerm) {
-      getFeed(initialTerm, 'stored', { signal: controller.signal }).then(restore, () => {
+    const { signal } = controller;
+    // The page may open before the collector is up (npm run dev starts all three at once),
+    // so health is retried, and the last search is restored once the collector answers.
+    void getHealth({ signal, attempts: STARTUP_HEALTH_ATTEMPTS }).then((current) => {
+      if (signal.aborted) return;
+      setHealth(current);
+      if (!initialTerm) return;
+      getFeed(initialTerm, 'stored', { signal }).then(restore, () => {
         // Restoring is a convenience; the user can still search.
       });
-    }
+    });
     return () => controller.abort();
   }, [initialTerm, restore]);
   const feed = visibleFeed(view);
