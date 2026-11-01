@@ -48,10 +48,17 @@ class CollectionService:
         if task is None:
             task = asyncio.create_task(self._collect_live(subreddit))
             self._in_flight[subreddit] = task
-            task.add_done_callback(lambda _: self._in_flight.pop(subreddit, None))
+            task.add_done_callback(lambda done: self._finished(subreddit, done))
         # Shielded: a request that goes away (client disconnect) must not cancel a run that
         # other requests are waiting on.
         return await asyncio.shield(task)
+
+    def _finished(self, subreddit: str, task: asyncio.Task[CollectionResponse]) -> None:
+        self._in_flight.pop(subreddit, None)
+        # Every waiter may have timed out already. The failure is recorded in the database,
+        # so mark it retrieved rather than have asyncio log it as unhandled.
+        if not task.cancelled():
+            task.exception()
 
     def last_good(self, term: str) -> CollectionResponse | None:
         """The previous successful feed for a term, or None. Best effort: never raises."""

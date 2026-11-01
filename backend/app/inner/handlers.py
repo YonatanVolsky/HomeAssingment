@@ -54,17 +54,24 @@ class CollectionFailed(AppError):
 
 
 _FRESHNESS = ('auto', 'live', 'stored')
+# The last good feed is one database read; it must not hold a failed request much longer.
+_LOOKUP_TIMEOUT_SECONDS = 5.0
 
 
 class PostsHandler(ResourceHandler):
     """GET posts: the collection matching the term, stored or collected per `freshness`."""
 
     def __init__(
-        self, service: CollectionService, loop: LoopThread, timeout_seconds: float
+        self,
+        service: CollectionService,
+        loop: LoopThread,
+        timeout_seconds: float,
+        lookup_timeout_seconds: float = _LOOKUP_TIMEOUT_SECONDS,
     ) -> None:
         self._service = service
         self._loop = loop
         self._timeout = timeout_seconds
+        self._lookup_timeout = lookup_timeout_seconds
 
     def get(self, args: Mapping[str, Any]) -> Any:
         term = args.get('term')
@@ -80,9 +87,16 @@ class PostsHandler(ResourceHandler):
         except AppError as error:
             if error.code == 'INVALID_TERM':
                 raise
-            last_good = self._loop.call(lambda: self._service.last_good(term), self._timeout)
-            raise CollectionFailed(error, _dump(last_good) if last_good else None) from error
+            raise CollectionFailed(error, self._last_good(term)) from error
         return _dump(response)
+
+    def _last_good(self, term: str) -> dict[str, Any] | None:
+        """Best effort: a slow or failed lookup must not replace the collection's error."""
+        try:
+            last_good = self._loop.call(lambda: self._service.last_good(term), self._lookup_timeout)
+        except AppError:
+            return None
+        return _dump(last_good) if last_good else None
 
 
 class HealthHandler(ResourceHandler):
