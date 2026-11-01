@@ -182,6 +182,31 @@ def test_python_m_app_inner_serves_and_refuses_bad_config(tmp_path):
     assert 'Invalid configuration: SERVER' in output
 
 
+def test_a_taken_port_is_a_clear_message_not_a_traceback(tmp_path):
+    with socket.socket() as taken:
+        taken.bind(('127.0.0.1', 0))
+        taken.listen()
+        port = taken.getsockname()[1]
+        process = run_inner(tmp_path, INNER_PORT=str(port))
+        output, _ = process.communicate(timeout=20)
+    assert process.returncode == 1
+    assert f'127.0.0.1:{port}' in output
+    assert 'in use' in output
+    assert 'Traceback' not in output
+
+
+def test_importing_the_entry_module_does_not_start_a_server():
+    result = subprocess.run(
+        [sys.executable, '-c', 'import app.inner.__main__'],
+        cwd=BACKEND,
+        env={**os.environ, 'INNER_PORT': 'not-a-port'},
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    assert (result.returncode, result.stderr) == (0, '')
+
+
 def test_the_feed_survives_a_restart_on_the_same_file(tmp_path):
     config = load_config(
         {'COLLECTOR_MODE': 'fixture', 'DB_PATH': str(tmp_path / 'r.db'), 'INNER_PORT': '0'}
