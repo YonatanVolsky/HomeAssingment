@@ -138,8 +138,9 @@ build ourselves — no browser, no automation — which keeps it within Appendix
 
 ## What is not finished
 
-- A browser check of the UI (375 px, keyboard only, dark mode) and a clean-machine dry run from
-  the README.
+- A browser check of the UI (375 px, keyboard only, dark mode).
+- The README was followed on a fresh clone on macOS (2026-11-04, `docs/acceptance.md` run 4),
+  but not on another computer, and the Windows steps have not been run.
 
 ## With more time
 

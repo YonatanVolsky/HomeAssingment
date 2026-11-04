@@ -2,9 +2,8 @@
 
 Checklist from `plan/06-testing-and-integration.md`. Updated each time it is run.
 
-Runs 1 and 2 predate the current stack (an Express web service in front of the Python
-collector, 2026-11-01) and are kept as a record. A run of the current stack against live
-Reddit is still to do.
+Runs 1 to 3 predate the current stack (an Express web service in front of the Python
+collector, 2026-11-01) and are kept as a record. Run 4 is the current stack, live.
 
 ## Run 1: 2026-10-29, offline (fixture mode)
 
@@ -56,3 +55,31 @@ Full suite: backend 257 passed + 1 live, frontend 88. Compliance and secret chec
 
 Still to do: look at the UI in a browser (375 px, keyboard, dark mode), a live end-to-end run
 through the server and smoke script, and a clean-machine README dry run.
+
+## Run 4: 2026-11-04, current stack, fresh clone, live Reddit
+
+Environment: macOS 14.6 (Apple Silicon), Node 24.12.0, npm 11.6.2, Python 3.13.1. A fresh
+`git clone` of `feat/python` (commit 8a08790), set up only with the README's "Setup (once)"
+commands.
+
+| # | Check | Result | How |
+|---|---|---|---|
+| 1 | Fresh clone, follow README, app starts | Pass (same Mac) | Venv, `pip install`, `npm install`; `npm run dev` and `npm run build && npm start` both serve the UI and the API |
+| 2 | Search `r/ubisoft`: a feed of cards | Pass (live) | `GET /api/posts?term=r/ubisoft&freshness=live` through the Vite proxy: 25 real posts in 2.0 s, newest first, none missing title, author, comments, time or link |
+| 3 | Card links | Pass (live) | Permalinks are `https://www.reddit.com/r/ubisoft/comments/...` |
+| 4 | Inspect the DB | Pass | `scripts/db-inspect.sh`: 25 posts, 2 runs (one success, one `NOT_FOUND_SUBREDDIT`), 25 links |
+| 6 | Repeat within 60 s is cached | Pass (live) | `freshness=auto` right after: `source: cache`, no Reddit call |
+| 8 | Unknown subreddit: not found, no Retry | Pass (live) | A made-up name: HTTP 404 `NOT_FOUND_SUBREDDIT`, `retryable: false` |
+| 10 | Every outcome message (fixture) | Pass | Through the proxy: `empty` 200 with 0 posts, `notfound` 404, `ratelimited` 429 + `Retry-After: 30`, `broken` 502, `timeout` 504, `bad name!` and blank 400; a reddit.com link is normalized |
+| 11 | Full test suite green | Pass | Collector 407 (+1 live, opt-in), web service 90, frontend 91; lint, compliance and secret checks OK; `scripts/smoke.sh` 6/6 via the proxy |
+| 12 | Python versions | Pass | Collector tests pass on 3.11.16, 3.12.14 and 3.13.1 |
+
+Found and fixed in this run: real `curl_cffi` failures were explained wrongly. A hung Reddit
+request showed "Reddit is unavailable right now." instead of "Reddit took too long to
+respond.", and no network during the token step showed "Could not authenticate with Reddit."
+The tests had used `httpx` exceptions, which the app no longer raises. They now use
+`curl_cffi`'s, two tests drive the real transport against local sockets, and `httpx` was
+removed (collector tests: 411 after the fix).
+
+Still to do: look at the UI in a browser (375 px, keyboard, dark mode); run the README on
+another computer and with the Windows steps.

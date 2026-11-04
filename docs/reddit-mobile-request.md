@@ -59,8 +59,13 @@ Authorization: Bearer <access_token>
 Content-Type: application/json; charset=utf-8
 User-Agent: Reddit/Version 2024.24.0/Build 1675730/Android 13
 x-apollo-operation-name: SubredditFeedElements
-Accept: multipart/mixed; deferSpec=20220824, application/json
+x-reddit-device-id: <random UUID, one per process>
+client-vendor-id: <same UUID>
 ```
+
+The app also sends `Accept: multipart/mixed; deferSpec=20220824, application/json`. The
+collector leaves it out: without it the reply is one plain JSON document (checked live,
+2026-11-04), so there is no multipart response to parse.
 
 Body (a persisted GraphQL query, sent as a hash, not the query text):
 

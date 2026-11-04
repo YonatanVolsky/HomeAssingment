@@ -1,6 +1,6 @@
 # Handoff: continuing the project
 
-Updated 2026-10-31. A new Claude Code session should read this file first; it replaces the
+Updated 2026-11-04. A new Claude Code session should read this file first; it replaces the
 conversation history, which does not carry over between sessions.
 
 ## Where things stand
@@ -9,7 +9,8 @@ conversation history, which does not carry over between sessions.
   into `main` beyond the plan yet — the merge is a pending step (see "Open to-do", below).
 - **The required app is built, tested, and live collection works.** You can enter a subreddit
   and the backend fetches its real newest posts from Reddit, stores them in SQLite, and the UI
-  shows them as cards. Verified live on 2026-10-30 (`docs/acceptance.md`, Run 3).
+  shows them as cards. Verified live through the whole stack from a fresh clone on
+  2026-11-04 (`docs/acceptance.md`, Run 4).
 - **Architecture (2026-10-31):** browser → **Express web service** (`server/`, :3001, REST:
   `GET /api/posts?term&freshness`, `GET /api/health`) → one JSON line over TCP → **Python
   collector** (`backend/app/inner/`, :3002, thread pool + one event-loop thread) → Reddit and
@@ -18,9 +19,14 @@ conversation history, which does not carry over between sessions.
   `docs/superpowers/specs/2026-10-31-express-and-inner-server-design.md`.
 - **Live collection is the real thing**: `backend/app/collector/reddit/mobile_api.py` builds and
   sends the actual token and GraphQL listing requests.
-- **Tested:** collector (pytest, 342 cases plus one opt-in `live`), web service (Vitest +
-  supertest, 60), frontend (Vitest, 87). All green on 2026-10-31, as are lint, the compliance
-  and secret checks, and `scripts/smoke.sh` against the stack in fixture mode.
+- **Tested:** collector (pytest, 411 cases plus one opt-in `live`), web service (Vitest +
+  supertest, 90), frontend (Vitest, 91). All green on 2026-11-04 on Python 3.11, 3.12 and
+  3.13, as are lint, the compliance and secret checks, and `scripts/smoke.sh`.
+- **Fixed 2026-11-04: real network failures had the wrong message.** `curl_cffi`'s timeout is
+  an `OSError`, not a `TimeoutError`, so a hung request said "Reddit is unavailable", and no
+  network during the token step said "Could not authenticate with Reddit." The tests had used
+  `httpx` exceptions; they now use `curl_cffi`'s, plus two real-transport tests on local
+  sockets. `httpx` is gone; `anyio` (for the async tests) is pinned in requirements-dev.
 - **Fixed 2026-10-31: missing or banned subreddits.** Reddit answers these with HTTP 200, not
   404: `postFeed: null` for a name that does not exist, `__typename: "UnavailableSubreddit"`
   for a banned (and presumably private) one. The parser used to report both as "Reddit
@@ -94,14 +100,13 @@ Nothing is required for the app to work; these finish and package it.
 
 1. **Browser check of the UI** — 375 px width, keyboard-only, dark mode (noted unfinished in
    DESIGN.md).
-2. **Clean-machine dry run** from the README, to confirm a fresh clone runs with no hidden
-   steps.
-3. **Acceptance record**: `docs/acceptance.md` has no run against the Express + collector stack
-   with live Reddit yet.
-4. **Merge `feat/python` into `main`** once the above pass. Until then a reviewer cloning the
-   default branch gets only the plan, not the app.
-5. **Push to GitHub** (needs the owner's login; a Claude session cannot do this).
-6. Optional: `docs/interview-notes.md`, tag `v1.0-submission`, zip (plan/07); optionally delete
+2. **Dry run on another computer** (and the Windows steps). A fresh clone on the same Mac
+   passed on 2026-11-04 (`docs/acceptance.md`, Run 4).
+3. **Merge `feat/python` into `main`** once the above pass. Until then a reviewer cloning the
+   default branch gets only the plan, not the app. On 2026-11-04 `origin/feat/python` was 50
+   commits behind (before the live collector) and the repository was private.
+4. **Push to GitHub** (needs the owner's login; a Claude session cannot do this).
+5. Optional: `docs/interview-notes.md`, tag `v1.0-submission`, zip (plan/07); optionally delete
    the local raw `captures/reddit.har`.
 
 ## Things only a person can run

@@ -238,8 +238,9 @@ plan/                 the original work plan
 ## Re-capturing the Reddit traffic
 
 Not needed to run the app. The capture process (Android emulator, Reddit APK older than
-2024.44, HTTP Toolkit) is described in [plan/01-reddit-capture.md](plan/01-reddit-capture.md),
-and its result in [docs/reddit-mobile-request.md](docs/reddit-mobile-request.md).
+2024.44, mitmproxy as the sniffer) is described in
+[plan/01-reddit-capture.md](plan/01-reddit-capture.md), and its result, including the exact
+setup used, in [docs/reddit-mobile-request.md](docs/reddit-mobile-request.md).
 
 ## Troubleshooting
 
