@@ -1,7 +1,7 @@
 import math
 from collections.abc import Mapping
 
-import httpx
+from curl_cffi.requests.exceptions import Timeout as CurlTimeout
 
 from app.errors import AppError
 
@@ -28,7 +28,8 @@ def classify_network_error(error: BaseException) -> AppError:
     """Maps a raised network or timeout error to an AppError. AppErrors pass through."""
     if isinstance(error, AppError):
         return error
-    is_timeout = isinstance(error, httpx.TimeoutException | TimeoutError)
+    # curl_cffi's Timeout is an OSError, not a TimeoutError, so it is named here.
+    is_timeout = isinstance(error, CurlTimeout | TimeoutError)
     return AppError('UPSTREAM_TIMEOUT' if is_timeout else 'UPSTREAM_ERROR', cause=error)
 
 

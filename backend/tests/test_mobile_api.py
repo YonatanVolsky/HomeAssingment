@@ -1,4 +1,5 @@
 import json
+import socket
 from pathlib import Path
 
 import pytest
@@ -7,6 +8,7 @@ from app.collector.reddit.mobile_api import (
     GQL_URL,
     SUBREDDIT_FEED_HASH,
     TOKEN_URL,
+    CurlCffiTransport,
     HttpResponse,
     MobileListingSource,
     create_anonymous_token_fetcher,
@@ -117,3 +119,39 @@ async def test_listing_source_reports_a_missing_subreddit_sent_as_http_200():
         await source.fetch_new_posts('zqxvbnmlkjqw', 25, 't')
     assert raised.value.code == 'NOT_FOUND_SUBREDDIT'
     assert raised.value.retryable is False
+
+
+# The real transport, against local sockets only (no Reddit): its errors are curl_cffi's own,
+# which fakes cannot reproduce.
+
+
+def _silent_port():
+    """A listening socket that never answers: a hung server."""
+    server = socket.socket()
+    server.bind(('127.0.0.1', 0))
+    server.listen(1)
+    return server
+
+
+def _closed_port():
+    """A port with nothing listening: connection refused."""
+    probe = socket.socket()
+    probe.bind(('127.0.0.1', 0))
+    port = probe.getsockname()[1]
+    probe.close()
+    return port
+
+
+async def test_the_real_transport_reports_a_hung_server_as_a_timeout():
+    with _silent_port() as server:
+        url = f'http://127.0.0.1:{server.getsockname()[1]}/'
+        with pytest.raises(AppError) as raised:
+            await CurlCffiTransport().post(url, {}, '', 0.3)
+    assert raised.value.code == 'UPSTREAM_TIMEOUT'
+
+
+async def test_the_real_transport_reports_a_refused_connection_as_unavailable():
+    url = f'http://127.0.0.1:{_closed_port()}/'
+    with pytest.raises(AppError) as raised:
+        await CurlCffiTransport().post(url, {}, '', 2)
+    assert raised.value.code == 'UPSTREAM_ERROR'

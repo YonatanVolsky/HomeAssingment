@@ -1,5 +1,5 @@
-import httpx
 import pytest
+from curl_cffi.requests import exceptions as curl
 
 from app.collector.classify import classify_network_error, classify_status
 from app.collector.mappers import (
@@ -138,10 +138,11 @@ def test_rate_limits_carry_the_wait_time(headers, seconds):
 @pytest.mark.parametrize(
     ('exception', 'code'),
     [
-        (httpx.ConnectTimeout('connect-detail-1'), 'UPSTREAM_TIMEOUT'),
-        (httpx.ReadTimeout('read-detail-2'), 'UPSTREAM_TIMEOUT'),
-        (httpx.ConnectError('dns-detail-3'), 'UPSTREAM_ERROR'),
-        (httpx.RemoteProtocolError('socket-detail-4'), 'UPSTREAM_ERROR'),
+        (curl.ConnectTimeout('connect-detail-1'), 'UPSTREAM_TIMEOUT'),
+        (curl.ReadTimeout('read-detail-2'), 'UPSTREAM_TIMEOUT'),
+        (TimeoutError('loop-detail-3'), 'UPSTREAM_TIMEOUT'),
+        (curl.DNSError('dns-detail-4'), 'UPSTREAM_ERROR'),
+        (curl.ConnectionError('socket-detail-5'), 'UPSTREAM_ERROR'),
     ],
 )
 def test_network_errors_are_auto_retried(exception, code):

@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 import pytest
+from curl_cffi.requests import exceptions as curl
 
 from app.collector.factory import create_collector
 from app.collector.fixture_collector import (
@@ -95,8 +96,9 @@ async def test_a_failed_fetch_is_upstream_auth_and_not_cached():
     assert await tokens.get() == 'recovered'
 
 
-@pytest.mark.parametrize('code', ['UPSTREAM_TIMEOUT', 'RATE_LIMITED'])
-async def test_timeouts_and_rate_limits_pass_through(code):
+# Only a rejected token is an auth failure; no network is not.
+@pytest.mark.parametrize('code', ['UPSTREAM_TIMEOUT', 'RATE_LIMITED', 'UPSTREAM_ERROR'])
+async def test_network_failures_and_rate_limits_pass_through(code):
     async def fetch():
         raise AppError(code)
 
@@ -182,15 +184,11 @@ def build(source, deadline_seconds=5.0, tokens=None):
 
 
 def network_error():
-    import httpx
-
-    return httpx.ConnectError('reset')
+    return curl.ConnectionError('reset')
 
 
 def timeout_error():
-    import httpx
-
-    return httpx.ReadTimeout('slow')
+    return curl.ReadTimeout('slow')
 
 
 async def expect_code(coro, code):
