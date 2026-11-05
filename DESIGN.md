@@ -136,17 +136,6 @@ fingerprints the TLS/HTTP-2 handshake to tell a real app from a script. The defa
 connection looks like the app's at the transport layer. It is still a direct HTTP request we
 build ourselves — no browser, no automation — which keeps it within Appendix A's rules.
 
-## What is not finished
-
-- A browser check of the UI (375 px, keyboard only, dark mode).
-- The README was followed on a fresh clone on macOS (2026-11-04, `docs/acceptance.md` run 4),
-  but not on another computer, and the Windows steps have not been run.
-
-## With more time
-
-Free-text search inside a subreddit, pagination, retention pruning and real migrations,
-scheduled re-collection, thumbnails and media type on cards, a browser end-to-end test, and a
-scheduled contract test against live Reddit to catch format changes early.
 
 ## AI usage
 
