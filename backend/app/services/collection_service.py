@@ -45,8 +45,8 @@ class CollectionService:
             task = asyncio.create_task(self._collect_live(subreddit))
             self._in_flight[subreddit] = task
             task.add_done_callback(lambda done: self._finished(subreddit, done))
-        # Shielded: a request that goes away (client disconnect) must not cancel a run that
-        # other requests are waiting on.
+        # Shielded: when one waiter gives up (LoopThread.run cancels it at its timeout), the
+        # run that other requests are waiting on must go on.
         return await asyncio.shield(task)
 
     def _finished(self, subreddit: str, task: asyncio.Task[CollectionResponse]) -> None:

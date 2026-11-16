@@ -81,7 +81,9 @@ Browser: state machine → cards, empty state or error banner
   `UPSTREAM_BLOCKED`: no token refresh, no retry, no **Try again**.
 - **Concurrency:** requests for the same term share one collection task; the shared token
   refresh has its own timeout. Both are wrapped in `asyncio.shield`, so one request giving up
-  (deadline or closed browser tab) never cancels work other requests are waiting on.
+  (its deadline, or a collector worker's wait running out) never cancels work other requests are
+  waiting on. A closed browser tab does not reach the collector at all: Express keeps waiting for
+  the reply.
 - **No duplicates:** posts are upserted by Reddit id.
 - **Failures:** every failed run is recorded with its error code and never replaces the last
   good feed, which the API returns next to the error.
