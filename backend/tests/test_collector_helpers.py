@@ -122,6 +122,22 @@ def test_error_statuses_are_classified(status, code, auto_retry):
     assert (error.code, error.auto_retry) == (code, auto_retry)
 
 
+EDGE_BLOCK_PAGE = '<!DOCTYPE html>\n<html><head><title>Blocked</title></head><body></body></html>'
+
+
+@pytest.mark.parametrize(
+    ('status', 'body', 'code'),
+    [
+        (403, EDGE_BLOCK_PAGE, 'UPSTREAM_BLOCKED'),
+        (403, '\n  <html>blocked</html>', 'UPSTREAM_BLOCKED'),
+        (403, '{"message": "Forbidden", "error": 403}', 'UPSTREAM_AUTH'),
+        (401, EDGE_BLOCK_PAGE, 'UPSTREAM_AUTH'),
+    ],
+)
+def test_an_html_403_is_an_edge_block_not_an_auth_failure(status, body, code):
+    assert classify_status(status, {}, body).code == code
+
+
 @pytest.mark.parametrize(
     ('headers', 'seconds'),
     [({'retry-after': '17'}, 17), ({'x-ratelimit-reset': '42.0'}, 42), ({}, 30)],

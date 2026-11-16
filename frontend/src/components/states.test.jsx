@@ -33,16 +33,30 @@ describe('ErrorBanner', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
-  it('offers no retry and asks for a different input when not retryable', () => {
-    render(
-      <ErrorBanner
-        error={{ code: 'NOT_FOUND_SUBREDDIT', message: 'Not found.', retryable: false }}
-        onRetry={vi.fn()}
-        now={NOW}
-      />,
-    );
+  it.each(['NOT_FOUND_SUBREDDIT', 'INVALID_TERM'])(
+    'offers no retry and asks for a different name for %s',
+    (code) => {
+      render(
+        <ErrorBanner
+          error={{ code, message: 'Not found.', retryable: false }}
+          onRetry={vi.fn()}
+          now={NOW}
+        />,
+      );
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      expect(screen.getByText(/check the name/i)).toBeInTheDocument();
+    },
+  );
+  it('does not blame the name for a failure that has nothing to do with it', () => {
+    const blocked = {
+      code: 'UPSTREAM_BLOCKED',
+      message: 'Reddit is blocking requests from this app.',
+      retryable: false,
+    };
+    render(<ErrorBanner error={blocked} onRetry={vi.fn()} now={NOW} />);
+    expect(screen.getByRole('alert')).toHaveTextContent(blocked.message);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
-    expect(screen.getByText(/check the name/i)).toBeInTheDocument();
+    expect(screen.queryByText(/check the name/i)).not.toBeInTheDocument();
   });
   it('keeps Try again disabled with a countdown until the rate limit passes', () => {
     vi.useFakeTimers();

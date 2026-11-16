@@ -11,6 +11,7 @@ describe('statusFor', () => {
     ['DB_ERROR', 500],
     ['INTERNAL', 500],
     ['UPSTREAM_AUTH', 502],
+    ['UPSTREAM_BLOCKED', 502],
     ['UPSTREAM_ERROR', 502],
     ['CONTRACT_ERROR', 502],
     ['INNER_UNAVAILABLE', 503],

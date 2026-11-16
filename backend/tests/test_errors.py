@@ -26,6 +26,7 @@ def test_rate_limit_message_includes_the_wait():
         ('INVALID_TERM', False, False),
         ('RATE_LIMITED', False, True),
         ('UPSTREAM_AUTH', False, True),
+        ('UPSTREAM_BLOCKED', False, False),
         ('UPSTREAM_ERROR', True, True),
         ('UPSTREAM_TIMEOUT', True, True),
         ('NOT_FOUND_SUBREDDIT', False, False),
@@ -44,8 +45,8 @@ def test_http_status_is_not_known_here():
     assert not hasattr(AppError('INTERNAL'), 'http_status')
 
 
-def test_table_covers_eleven_codes():
-    assert len(ERROR_TABLE) == 11
+def test_table_covers_twelve_codes():
+    assert len(ERROR_TABLE) == 12
 
 
 def test_auto_retry_follows_the_table_unless_switched_off():

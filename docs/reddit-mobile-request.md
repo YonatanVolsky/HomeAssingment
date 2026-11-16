@@ -120,7 +120,8 @@ marks pinned posts; they are kept. Parsing is implemented and tested in
 
 | Signal | Meaning |
 |---|---|
-| HTTP 401/403 on GraphQL with a valid body | Token expired, or the request was blocked (see below) |
+| HTTP 401, or 403 with a JSON body | Token rejected → one token refresh, then `UPSTREAM_AUTH` |
+| HTTP 403 with an HTML page | Blocked by the edge before the token is read (see below) → `UPSTREAM_BLOCKED`, no refresh or retry |
 | `x-ratelimit-remaining`, `x-ratelimit-reset` (seconds) | Rate-limit budget; `reset` feeds our `Retry-After` |
 | Observed limits | `x-ratelimit-used: 148`, `remaining: 452`, `reset: 283` (per ~600/10 min window) |
 | Subreddit does not exist | HTTP **200** with `{"data":{"postFeed":null}}` (checked live 2026-10-31) → `NOT_FOUND_SUBREDDIT` |

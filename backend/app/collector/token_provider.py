@@ -17,8 +17,9 @@ TokenFetcher = Callable[[], Awaitable[FetchedToken]]
 """The app's anonymous token request. Reddit-specific; see docs/reddit-mobile-request.md."""
 
 _REFRESH_MARGIN_SECONDS = 60
-# Only a rejected or unreadable token is an auth failure; a network failure stays one.
-_PASS_THROUGH = {'UPSTREAM_TIMEOUT', 'RATE_LIMITED', 'UPSTREAM_ERROR'}
+# Only a rejected or unreadable token is an auth failure; a network failure or an edge block
+# stays what it is.
+_PASS_THROUGH = {'UPSTREAM_TIMEOUT', 'RATE_LIMITED', 'UPSTREAM_ERROR', 'UPSTREAM_BLOCKED'}
 
 
 class TokenProvider:

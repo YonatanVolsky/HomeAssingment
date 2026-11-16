@@ -96,8 +96,10 @@ async def test_a_failed_fetch_is_upstream_auth_and_not_cached():
     assert await tokens.get() == 'recovered'
 
 
-# Only a rejected token is an auth failure; no network is not.
-@pytest.mark.parametrize('code', ['UPSTREAM_TIMEOUT', 'RATE_LIMITED', 'UPSTREAM_ERROR'])
+# Only a rejected token is an auth failure; no network, or a block by the edge, is not.
+@pytest.mark.parametrize(
+    'code', ['UPSTREAM_TIMEOUT', 'RATE_LIMITED', 'UPSTREAM_ERROR', 'UPSTREAM_BLOCKED']
+)
 async def test_network_failures_and_rate_limits_pass_through(code):
     async def fetch():
         raise AppError(code)

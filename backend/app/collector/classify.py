@@ -8,11 +8,18 @@ from app.errors import AppError
 DEFAULT_RETRY_AFTER_SECONDS = 30
 
 
-def classify_status(status: int, headers: Mapping[str, str]) -> AppError | None:
-    """Maps an HTTP status from Reddit to an AppError, or None for success."""
+def classify_status(status: int, headers: Mapping[str, str], body: str = '') -> AppError | None:
+    """Maps an HTTP status from Reddit to an AppError, or None for success.
+
+    A 403 that is an HTML page comes from Reddit's edge, which refused the client before the
+    token was read (see docs/reddit-mobile-request.md, "Transport fingerprint"). A new token
+    cannot fix that, so it is a block, not an auth failure.
+    """
     if 200 <= status < 300:
         return None
     cause = RuntimeError(f'Reddit responded with HTTP {status}')
+    if status == 403 and body.lstrip().startswith('<'):
+        return AppError('UPSTREAM_BLOCKED', cause=cause)
     if status in (401, 403):
         return AppError('UPSTREAM_AUTH', cause=cause)
     if status == 404:

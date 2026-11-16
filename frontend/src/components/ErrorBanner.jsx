@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { relativeTime } from '../lib/format';
 const waitFor = (error) => ('retryAfterSeconds' in error ? (error.retryAfterSeconds ?? 0) : 0);
+// Failures the user fixes by entering a different subreddit; other errors are not about the name.
+const NAME_ERRORS = new Set(['INVALID_TERM', 'NOT_FOUND_SUBREDDIT']);
 
 /**
  * @param {object} props
@@ -26,7 +28,7 @@ export function ErrorBanner({ error, onRetry, now, lastGoodAt }) {
   return (
     <div className="error-banner" role="alert">
       <p className="error-message">{error.message}</p>
-      {!error.retryable && <p>Check the name and try a different subreddit.</p>}
+      {NAME_ERRORS.has(error.code) && <p>Check the name and try a different subreddit.</p>}
       {lastGoodAt && (
         <p className="error-note">Showing results collected {relativeTime(lastGoodAt, now)}.</p>
       )}

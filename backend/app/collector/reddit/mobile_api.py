@@ -95,7 +95,7 @@ def create_anonymous_token_fetcher(
 
     async def fetch() -> FetchedToken:
         response = await transport.post(TOKEN_URL, headers, body, _timeout_seconds(config))
-        error = classify_status(response.status, response.headers)
+        error = classify_status(response.status, response.headers, response.text)
         if error is not None:
             raise error
         try:
@@ -128,7 +128,7 @@ class MobileListingSource:
             GQL_URL, headers, body, _timeout_seconds(self._config)
         )
 
-        error = classify_status(response.status, response.headers)
+        error = classify_status(response.status, response.headers, response.text)
         if error is not None:
             raise error
         try:
