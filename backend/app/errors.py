@@ -11,6 +11,7 @@ ErrorCode = Literal[
     'INVALID_REQUEST',
     'RATE_LIMITED',
     'UPSTREAM_AUTH',
+    'UPSTREAM_BLOCKED',
     'UPSTREAM_ERROR',
     'UPSTREAM_TIMEOUT',
     'NOT_FOUND_SUBREDDIT',
@@ -36,6 +37,9 @@ ERROR_TABLE: MappingProxyType[str, ErrorPolicy] = MappingProxyType(
         'INVALID_REQUEST': ErrorPolicy(False, False, 'The request is not valid.'),
         'RATE_LIMITED': ErrorPolicy(False, True, 'Reddit is limiting requests. Try again shortly.'),
         'UPSTREAM_AUTH': ErrorPolicy(False, True, 'Could not authenticate with Reddit.'),
+        # Reddit's edge refused the connection itself (an HTML block page, before the token
+        # is read). Sending the same request again gets the same answer, so no retry.
+        'UPSTREAM_BLOCKED': ErrorPolicy(False, False, 'Reddit is blocking requests from this app.'),
         'UPSTREAM_ERROR': ErrorPolicy(True, True, 'Reddit is unavailable right now.'),
         'UPSTREAM_TIMEOUT': ErrorPolicy(True, True, 'Reddit took too long to respond.'),
         'NOT_FOUND_SUBREDDIT': ErrorPolicy(

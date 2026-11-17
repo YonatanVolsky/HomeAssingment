@@ -88,12 +88,26 @@ async def test_listing_source_respects_the_limit():
     assert len(await source.fetch_new_posts('ubisoft', 3, 't')) == 3
 
 
+async def test_token_fetcher_reports_an_edge_block():
+    page = HttpResponse(403, {'content-type': 'text/html'}, '<html>blocked</html>')
+    fetch = create_anonymous_token_fetcher(CONFIG, transport=RecordingTransport(page))
+
+    with pytest.raises(AppError) as raised:
+        await fetch()
+    assert raised.value.code == 'UPSTREAM_BLOCKED'
+
+
 @pytest.mark.parametrize(
-    ('status', 'code'),
-    [(403, 'UPSTREAM_AUTH'), (404, 'NOT_FOUND_SUBREDDIT'), (500, 'UPSTREAM_ERROR')],
+    ('status', 'body', 'code'),
+    [
+        (403, '<html>blocked</html>', 'UPSTREAM_BLOCKED'),
+        (403, '{"message": "Forbidden"}', 'UPSTREAM_AUTH'),
+        (404, '<html>not found</html>', 'NOT_FOUND_SUBREDDIT'),
+        (500, '<html>error</html>', 'UPSTREAM_ERROR'),
+    ],
 )
-async def test_listing_source_classifies_http_errors(status, code):
-    transport = RecordingTransport(HttpResponse(status, {}, '<html>blocked</html>'))
+async def test_listing_source_classifies_http_errors(status, body, code):
+    transport = RecordingTransport(HttpResponse(status, {}, body))
     source = MobileListingSource(CONFIG, transport=transport)
 
     with pytest.raises(AppError) as raised:

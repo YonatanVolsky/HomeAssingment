@@ -61,6 +61,7 @@ same term exists. `retryAfterSeconds` is present only for rate limits.
 | `NOT_FOUND_SUBREDDIT` | The subreddit does not exist, or is banned or private | no |
 | `RATE_LIMITED` | Reddit returned 429 | yes |
 | `UPSTREAM_AUTH` | Reddit rejected the anonymous token | yes |
+| `UPSTREAM_BLOCKED` | Reddit's edge refused the client itself (a 403 HTML page, before the token is read) | no |
 | `UPSTREAM_ERROR` | Reddit failed or could not be reached | yes |
 | `UPSTREAM_TIMEOUT` | Reddit (or the collection) took too long | yes |
 | `CONTRACT_ERROR` | Reddit's response had an unexpected shape | yes |
